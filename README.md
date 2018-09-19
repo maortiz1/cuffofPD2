@@ -1,4 +1,4 @@
-# Algoritmo de prediccion de tension  arterial
+# Algoritmo de prediccion de Presión  Arterial
 Cindy Hernandez Melo
 Andres Felipe Hernandez
 Andres Francisco Gonzalez
