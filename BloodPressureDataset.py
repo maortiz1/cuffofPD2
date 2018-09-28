@@ -3,7 +3,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 import matplotlib.pylab as plt
-from scipy.signal import find_peaks_cwt
+from scipy.signal import find_peaks
 
 cwd = os.getcwd()
 
@@ -29,19 +29,22 @@ def fun_Pan_Tompkins(t, ECG):
 	dx = (ECG[2:] - ECG[0:-2])/(t[2:]-t[0:-2])
 	dx = dx * dx
 	w_movil = np.zeros(len(dx))
-	w_size = 50
+	w_size = 20
 	for i in range(len(dx)-w_size):
 		w_movil[i]=np.sum(dx[i:i+w_size])
-	t = t[1:-1]
-	return [t, w_movil]
+	peaks = find_peaks(w_movil, width = w_size, height= np.var(w_movil)**0.5)
+	t = t[peaks[0]]
+	return t
 
-for i in range(0,1):
+for i in range(1,2):
     #print(files_csv[i])
     Matrix_data = np.genfromtxt(files_csv[i], delimiter=",")
     data_train_name =files_csv[i]
     data_train_PPG = (Matrix_data[0,:])
     data_train_ABP = (Matrix_data[1,:])
-    data_train_ECG = (Matrix_data[2,:])       
+    data_train_ECG = (Matrix_data[2,:])
+    t_train = np.arange(len(data_train_ECG))/fr
+    t_RRtrain = fun_Pan_Tompkins(t_train, data_train_ECG)       
 
 for i in range(2,3):
     #print(files_csv[i])
@@ -49,23 +52,11 @@ for i in range(2,3):
     data_test_name = files_csv[i]
     data_test_PPG = (Matrix_data[0,:])
     data_test_ABP = (Matrix_data[1,:])
-    data_test_ECG = (Matrix_data[2,:])    
-
-
-t_train = np.arange(len(data_train_ECG))/fr
-t_test = np.arange(len(data_test_ECG))/fr
+    data_test_ECG = (Matrix_data[2,:])
+    t_test = np.arange(len(data_test_ECG))/fr
+    t_RRtest = fun_Pan_Tompkins(t_test, data_test_ECG)
 
 plt.figure()
-plt.subplot(211)
 plt.plot(t_train, data_train_ECG)
-
 plt.title('ECG train %s'%data_train_name)
-
-plt.subplot(212)
-t, derivada = fun_Pan_Tompkins(t_train, data_train_ECG)
-plt.plot(t,derivada)
-peaks = find_peaks_cwt(derivada, np.arange(1, 50))
-plt.scatter(t[np.array(peaks)], derivada[np.array(peaks)], c='r')
-plt.title('Derivada Train')
-
 plt.show()
