@@ -4,27 +4,30 @@ from os import listdir
 from os.path import isfile, join
 import matplotlib.pylab as plt
 from scipy.signal import find_peaks
+import pickle
 
+##############################################################
 cwd = os.getcwd()
-
 #Get the names of the .csv file
 path_samples_csv= os.path.join(cwd,'mat_to_csv')
 files_csv = [f for f in listdir(path_samples_csv) if isfile(join(path_samples_csv, f))]
 #read the files
 os.chdir(path_samples_csv)
-
+#############################################################
 fr = 125
 
 data_train_name = []
 data_train_PPG  = np.empty(1)
 data_train_ABP  = np.empty(1)
 data_train_ECG  = np.empty(1)
+t_RRtrain = []
 
 data_test_name = []
 data_test_PPG  = np.empty(1)
 data_test_ABP  = np.empty(1)
 data_test_ECG  = np.empty(1)
-
+t_RRtest = []
+######################################################################
 def fun_Pan_Tompkins(t, ECG):
 	dx = (ECG[2:] - ECG[0:-2])/(t[2:]-t[0:-2])
 	dx = dx * dx
@@ -35,8 +38,8 @@ def fun_Pan_Tompkins(t, ECG):
 	peaks = find_peaks(w_movil, width = w_size, height= np.var(w_movil)**0.5)
 	t = t[peaks[0]]
 	return t
-
-for i in range(1,2):
+#########################################################################
+for i in range(6500):
     #print(files_csv[i])
     Matrix_data = np.genfromtxt(files_csv[i], delimiter=",")
     data_train_name =files_csv[i]
@@ -44,9 +47,9 @@ for i in range(1,2):
     data_train_ABP = (Matrix_data[1,:])
     data_train_ECG = (Matrix_data[2,:])
     t_train = np.arange(len(data_train_ECG))/fr
-    t_RRtrain = fun_Pan_Tompkins(t_train, data_train_ECG)       
+    t_RRtrain.append(fun_Pan_Tompkins(t_train, data_train_ECG))       
 
-for i in range(2,3):
+for i in range(6500,9365):
     #print(files_csv[i])
     Matrix_data = np.genfromtxt(files_csv[i], delimiter=",")
     data_test_name = files_csv[i]
@@ -54,9 +57,16 @@ for i in range(2,3):
     data_test_ABP = (Matrix_data[1,:])
     data_test_ECG = (Matrix_data[2,:])
     t_test = np.arange(len(data_test_ECG))/fr
-    t_RRtest = fun_Pan_Tompkins(t_test, data_test_ECG)
+    t_RRtest.append(fun_Pan_Tompkins(t_test, data_test_ECG))
 
 plt.figure()
-plt.plot(t_train, data_train_ECG)
-plt.title('ECG train %s'%data_train_name)
+plt.plot(t_train, data_train_PPG)
+plt.title('PPG train %s'%data_train_name)
 plt.show()
+#####################################################################
+with open('RR_train', 'wb') as fp:
+    pickle.dump(t_RRtrain, fp)
+
+with open('RR_test', 'wb') as fp:
+    pickle.dump(t_RRtest, fp)
+
