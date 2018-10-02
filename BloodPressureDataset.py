@@ -1,10 +1,17 @@
+#Arrays
 import numpy as np
+#Directories
 import os
 from os import listdir
 from os.path import isfile, join
+#Plot
 import matplotlib.pylab as plt
+#Find_peaks
 from scipy.signal import find_peaks
+#Save variables
 import pickle
+#Biosignals
+import neurokit as nk
 
 ##############################################################
 cwd = os.getcwd()
@@ -14,49 +21,58 @@ os.chdir(path_samples_csv)
 #############################################################
 fr = 125
 
-t_RRtrain = []
+t_RR = []
+t_PPT = []
 
-t_RRtest = []
-######################################################################
-def fun_Pan_Tompkins(t, ECG):
-    """ Algoritmo de Pan-Tompkins para hallar RR
-    """
-    dx = (ECG[2:] - ECG[0:-2])/(t[2:]-t[0:-2])
-    dx = dx * dx
-    w_movil = np.zeros(len(dx))
-    w_size = 20
-
-    for i in range(len(dx)-w_size):
-	    w_movil[i]=np.sum(dx[i:i+w_size])
-
-    peaks = find_peaks(w_movil, width = w_size, height= np.var(w_movil)**0.5)
-    t = t[peaks[0]]
-
-    return t
 #########################################################################
-for i in range(6000):
-	print(i)
-	data_train_PPG, data_train_ABP, data_train_ECG = np.genfromtxt(files_csv[i], delimiter=",")
-	print(data_train_PPG[0],data_train_ABP[0], data_train_ECG[0])
-	print(files_csv[i])
-	t_train = np.arange(len(data_train_ECG))/fr
-	t_RRtrain.append(fun_Pan_Tompkins(t_train, data_train_ECG))       
+numero = 6
 
-for i in range(6000,9000):
-	print(i)
-	data_test_PPG, data_test_ABP, data_test_ECG = np.genfromtxt(files_csv[i], delimiter=",")
-	t_test = np.arange(len(data_test_ECG))/fr
-	t_RRtest.append(fun_Pan_Tompkins(t_test, data_test_ECG))
-	
+for i in range(numero,numero+1):
+    print(i)
+    data_PPG, data_ABP, data_ECG = np.genfromtxt(files_csv[i], delimiter=",")
+    idx_peaksECG = nk.bio_process(ecg = data_ECG, sampling_rate=125)['ECG']['R_Peaks']
+    idx_peaksPPG = []
+    idx_peaksDBP = []
+    idx_peaksSBP = []
+    
+    for i in range(len(idx_peaksECG)-1):
+        ran_0 = idx_peaksECG[i]
+        ran_1 = idx_peaksECG[i+1]
+        if not find_peaks(data_PPG[ran_0:ran_1], distance = ran_1-ran_0)[0]:
+            idx_peaksPPG.append(int(0))
+        else:
+            idx_peaksPPG.append(int(find_peaks(data_PPG[ran_0:ran_1], distance = ran_1-ran_0)[0] + ran_0))
 
+        idx_peaksDBP.append(int(np.argmax(data_ABP[ran_0:ran_1]) + ran_0))
+        idx_peaksSBP.append(int(np.argmin(data_ABP[ran_0:ran_1]) + ran_0))
+
+    t = (np.arange(len(data_ECG))/fr)
+    
 plt.figure()
-plt.plot(t_train, data_train_PPG)
-plt.title('PPG train')
-plt.show()
+plt.subplot(311)
+plt.plot(t, data_PPG)
+plt.scatter(t[idx_peaksPPG], data_PPG[idx_peaksPPG],c = 'g')
+
+plt.subplot(312)
+plt.plot(t,data_ECG)
+plt.scatter(t[idx_peaksECG],data_ECG[idx_peaksECG], c ='r')
+
+plt.subplot(313)
+plt.plot(t,data_ABP)
+plt.scatter(t[idx_peaksDBP], data_ABP[idx_peaksDBP], c = 'y')
+plt.scatter(t[idx_peaksSBP], data_ABP[idx_peaksSBP], c = 'k')
+
 #####################################################################
 
-with open('RR_train.mat', 'wb') as fp:
-    pickle.dump(t_RRtrain, fp)
+path_RR = os.path.join(cwd,'RR.pkl')
+path_PPT= os.path.join(cwd,'PPT.pkl')
 
-with open('RR_test.mat', 'wb') as fp:
-    pickle.dump(t_RRtest, fp)
+# Saving the objects:
+with open(path_RR, 'wb') as f:  
+    pickle.dump(t_RR, f)
+    
+with open(path_PPT, 'wb') as f:  
+    pickle.dump(t_PPT, f)
+
+
+
