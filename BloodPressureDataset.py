@@ -28,9 +28,12 @@ DBP = []
 
 #########################################################################
 
-for i in range(0,100):
+for i in range(0,50):
     print(i)
     data_PPG, data_ABP, data_ECG = np.genfromtxt(files_csv[i], delimiter=",")
+    if np.mean(data_ECG)<0.2:
+        data_ECG = - data_ECG
+        
     idx_peaksECG = nk.bio_process(ecg = data_ECG, sampling_rate=125)['ECG']['R_Peaks']
     idx_peaksPPG = []
     idx_peaksDBP = []
