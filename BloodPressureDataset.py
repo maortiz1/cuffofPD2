@@ -28,8 +28,7 @@ DBP = []
 
 #########################################################################
 
-for i in range(0,50):
-    print(i)
+for i in range(200):
     data_PPG, data_ABP, data_ECG = np.genfromtxt(files_csv[i], delimiter=",")
     if np.mean(data_ECG)<0.2:
         data_ECG = - data_ECG
@@ -51,10 +50,19 @@ for i in range(0,50):
         idx_peaksSBP.append(int(np.argmin(data_ABP[ran_0:ran_1]) + ran_0))
 
     t = (np.arange(len(data_ECG))/fr)
+    
     t_RR = t[idx_peaksECG]
     t_PPG = t[idx_peaksPPG]
-    t_HR.append(np.diff(t_RR)[np.where(np.array(idx_peaksPPG)>0)[0]])
-    t_PPT.append((t_PPG-t_RR[:-1])[np.where(np.array(idx_peaksPPG)>0)[0]])
+    
+    t_HR.append(60/np.diff(t_RR)[np.where(np.array(idx_peaksPPG)>0)[0]])
+    
+    PPT1 = (t_PPG-t_RR[:-1])[np.where(np.array(idx_peaksPPG)>0)]
+    PPT2 = (t_RR[1: ]-t_PPG)[np.where(np.array(idx_peaksPPG)>0)]
+    if np.mean(PPT1)>np.mean(PPT2):
+        t_PPT.append(PPT1)
+    else:
+        t_PPT.append(PPT2)
+        
     SBP.append(data_ABP[np.array(idx_peaksSBP)[np.where(np.array(idx_peaksPPG)>0)[0]]])
     DBP.append(data_ABP[np.array(idx_peaksDBP)[np.where(np.array(idx_peaksPPG)>0)[0]]])
         
