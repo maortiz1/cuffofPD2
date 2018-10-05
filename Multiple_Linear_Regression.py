@@ -47,10 +47,23 @@ for i in range(n):
     HR_norm = (HRtrain[i]-np.mean(HRtrain[i]))/(np.var(HRtrain[i])**0.5)
     logPPT_norm = (np.log(PPTtrain[i])-np.mean(np.log(PPTtrain[i])))/(np.var(np.log(PPTtrain[i]))**0.5)
     
+    if np.var(DBPtrain[i])**0.5 > 0:
+        DPB_norm = (DBPtrain[i]-np.mean(DBPtrain[i]))/(np.var(DBPtrain[i])**0.5)
+    else:
+        DPB_norm = (DBPtrain[i]-np.mean(DBPtrain[i]))
+        
+    if (np.var(SBPtrain[i])**0.5) > 0:
+        SBP_norm = (SBPtrain[i]-np.mean(SBPtrain[i]))/(np.var(SBPtrain[i])**0.5)
+    else:
+        SBP_norm = (SBPtrain[i]-np.mean(SBPtrain[i]))
+    
     idx = np.ones(np.shape(HR_norm), dtype=bool)
     idx = np.where(abs(HR_norm)<2,idx,False)
-    idx = np.where(abs(logPPT_norm)<2,idx,False)    
-
+    idx = np.where(abs(logPPT_norm)<2,idx,False)   
+    idx = np.where(abs(DPB_norm)<2,idx,False)
+    idx = np.where(abs(SBP_norm)<2,idx,False)
+    
+    
     X = np.transpose(np.array([HR_norm[idx], logPPT_norm[idx]]))
     y1  = SBPtrain[i][idx]
     y2  = DBPtrain[i][idx]
@@ -67,6 +80,24 @@ for i in range(n):
     errorSBP[i] = 1/(len(y1)) * sum((regSBP.predict(X)-y1)**2)
     errorDBP[i] = 1/(len(y2)) * sum((regDBP.predict(X)-y2)**2)
     
+############################################################################ 
     
-    
-    
+idx_coef = np.ones(n, dtype=bool)
+idx_coef = np.where(abs(aSBP)<2000,idx_coef,False)
+idx_coef = np.where(abs(bSBP)<2000,idx_coef,False)
+idx_coef = np.where(abs(aDBP)<2000,idx_coef,False)
+idx_coef = np.where(abs(bDBP)<2000,idx_coef,False)
+
+print('aSBP')
+print('mean',np.mean(aSBP[idx_coef]) , 'std', np.var(aSBP[idx_coef])**0.5)
+print('bSBP')
+print('mean',np.mean(bSBP[idx_coef]) , 'std', np.var(bSBP[idx_coef])**0.5)
+print('Mean Squared Error SBP')
+print(np.mean(errorSBP[idx_coef]))
+print('aDBP')
+print('mean',np.mean(aDBP[idx_coef]) , 'std', np.var(aDBP[idx_coef])**0.5)
+print('bDBP')
+print('mean',np.mean(bDBP[idx_coef]) , 'std', np.var(bDBP[idx_coef])**0.5)
+print('Mean Squared Error DBP')
+print(np.mean(errorDBP[idx_coef]))
+
