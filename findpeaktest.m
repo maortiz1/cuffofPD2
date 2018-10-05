@@ -14,8 +14,9 @@ fid=fclose(fid);
 fs=125;
 t=linspace(0,length(ecg)/fs,length(ecg));
 %%
-[ind]=findPeakEcg(-1*ecg,1,0.05);
+[ind]=findPeakEcg(ecg,t,1,1);
 %%
-plot(t,-1*ecg)%,t(ind),ecg(ind),'*')
+figure
+plot(t,ecg,'b',t(ind),ecg(ind),'r*')%,t(ind),ecg(ind),'*')
 % xlim([1 3])
 %%
