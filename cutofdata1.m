@@ -56,9 +56,9 @@ plot(t(2:end),d);
 ax2(3)=subplot(4,1,3);
 ecg2=d.^2;
 
-windowSize = 5;
+w = 5;
 
-b = (1/windowSize)*ones(1,windowSize);
+b = (1/w)*ones(1,w);
 a=1;
 eprom=filter(b,a,ecg2);
 plot(t(2:end),ecg2)
@@ -71,14 +71,23 @@ mas=max(peak);
 des=std(peak);
 peak((mas-des)<peak)=0;
 tnew=t(2:end);
-newpeak=diff(peak);
-[ind]=find(peak~=0);
-% x=diff(ind);
-% y=find(x<6);
-% y=y+1;
-% ind(y)=[];
-%  stem(tnew(ind),peak(ind)); 
-plot(tnew(2:end),diff(peak))
+% newpeak=diff(peak);
+% [ind]=find(peak~=0);
+
+w = 15;
+b = (1/w)*ones(1,w);
+n=0;
+for i=1:length(peak)-w
+    n(i)=sum(peak(i:i+w));     
+end
+[ind]=find(n>0.08);
+tnew=tnew(1:end);
+x=diff(ind);
+y=find(x<3);
+y=y+1;
+ind(y)=[];
+stem(tnew(ind),n(ind)); 
+% plot(tnew(1:end-w),(n))
 
 linkaxes(ax2,'x')
 
