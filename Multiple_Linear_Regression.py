@@ -4,6 +4,8 @@ import numpy as np
 import os
 #Plot
 import matplotlib.pylab as plt
+#Scale
+from sklearn.preprocessing import scale
 #Save variables
 import pickle
 
@@ -44,18 +46,10 @@ errorDBP = np.empty(n)
 
 for i in range(n):
     
-    HR_norm = (HRtrain[i]-np.mean(HRtrain[i]))/(np.var(HRtrain[i])**0.5)
-    logPPT_norm = (np.log(PPTtrain[i])-np.mean(np.log(PPTtrain[i])))/(np.var(np.log(PPTtrain[i]))**0.5)
-    
-    if np.var(DBPtrain[i])**0.5 > 0:
-        DPB_norm = (DBPtrain[i]-np.mean(DBPtrain[i]))/(np.var(DBPtrain[i])**0.5)
-    else:
-        DPB_norm = (DBPtrain[i]-np.mean(DBPtrain[i]))
-        
-    if (np.var(SBPtrain[i])**0.5) > 0:
-        SBP_norm = (SBPtrain[i]-np.mean(SBPtrain[i]))/(np.var(SBPtrain[i])**0.5)
-    else:
-        SBP_norm = (SBPtrain[i]-np.mean(SBPtrain[i]))
+    HR_norm     = scale(HRtrain[i])
+    logPPT_norm = scale(np.log(PPTtrain[i]))
+    DPB_norm    = scale(DBPtrain[i])     
+    SBP_norm    = scale(SBPtrain[i])
     
     idx = np.ones(np.shape(HR_norm), dtype=bool)
     idx = np.where(abs(HR_norm)<2,idx,False)
@@ -101,3 +95,4 @@ print('mean',np.mean(bDBP[idx_coef]) , 'std', np.var(bDBP[idx_coef])**0.5)
 print('Mean Squared Error DBP')
 print(np.mean(errorDBP[idx_coef]))
 
+l = errorSBP[idx_coef]
