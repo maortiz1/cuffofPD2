@@ -26,10 +26,10 @@ with open(path_PPT, 'rb') as f:
     PPTtrain = pickle.load(f)
     
 with open(path_SBP, 'rb') as f:
-    SBPtrain = pickle.load(f)
+    DBPtrain = pickle.load(f)
     
 with open(path_DBP, 'rb') as f:
-    DBPtrain = pickle.load(f)
+    SBPtrain = pickle.load(f)
     
 #########################################################################
 n = len(HRtrain)
@@ -72,8 +72,8 @@ for i in range(n):
     aSBP[i], bSBP[i] = regSBP.coef_
     aDBP[i], bDBP[i] = regDBP.coef_
     
-    errorSBP[i] = 1/(len(y1)) * sum((regSBP.predict(X)-y1)**2)
-    errorDBP[i] = 1/(len(y2)) * sum((regDBP.predict(X)-y2)**2)
+    errorSBP[i] = ( 1/(len(y1)) * sum((regSBP.predict(X)-y1)**2) )**0.5
+    errorDBP[i] = ( 1/(len(y2)) * sum((regDBP.predict(X)-y2)**2) )**0.5
     
 ############################################################################ 
     
@@ -82,14 +82,14 @@ print('aSBP')
 print('mean',np.mean(aSBP) , 'std', np.var(aSBP)**0.5)
 print('bSBP')
 print('mean',np.mean(bSBP) , 'std', np.var(bSBP)**0.5)
-print('Mean Squared Error SBP')
-print(np.mean(errorSBP))
+print('Root Mean Squared Error SBP')
+print('mean',np.mean(errorSBP),'std', np.var(errorSBP)**0.5)
 print('aDBP')
 print('mean',np.mean(aDBP) , 'std', np.var(aDBP)**0.5)
 print('bDBP')
 print('mean',np.mean(bDBP) , 'std', np.var(bDBP)**0.5)
-print('Mean Squared Error DBP')
-print(np.mean(errorDBP))
+print('Root Mean Squared Error DBP')
+print('mean',np.mean(errorDBP),'std', np.var(errorDBP)**0.5)
 
 tag = [];
 tag.extend(['Systolic']*np.shape(errorSBP)[0])
@@ -97,6 +97,6 @@ tag.extend(['Diastolic']*np.shape(errorSBP)[0])
 plt.figure()
 sns.violinplot(tag,np.append(errorSBP,errorDBP), palette = "Blues_d", cut=0)
 plt.xlabel('Blood Pressure') # Set text for the x axis
-plt.ylabel('MSE')# Set text for y axis
+plt.ylabel('RMSE')# Set text for y axis
 plt.title('Multiple Logarithmic Regression')
 plt.show()

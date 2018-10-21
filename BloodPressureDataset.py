@@ -29,13 +29,13 @@ SBP   = []
 DBP   = []
 
 #########################################################################
-for i in range(500):
+for i in range(1000):
     data_PPG, data_ABP, data_ECG = np.genfromtxt(files_csv[i], delimiter=",")
     print(i)
     if len(data_PPG)>5*60*fr:      
         data_ECG = scale(data_ECG)
         if np.min(data_ECG)<-3 and np.max(data_ECG)<3:
-            data_ECG = data_ECG            
+            data_ECG = -data_ECG            
         t = (np.arange(len(data_ECG))/fr)
         idx_peaksECG = nk.bio_process(ecg = data_ECG, sampling_rate=125)['ECG']['R_Peaks']
         t_RR = t[idx_peaksECG]
@@ -61,10 +61,11 @@ for i in range(500):
         t_RR2 =  np.delete(t_RR, np.array(idx_del))
         t_PPG = t[idx_peaksPPG]         
         
-        if np.var(data_ABP[np.array(idx_peaksSBP)])<15**2 and np.var(data_ABP[np.array(idx_peaksDBP)])<15**2:
+        PPT1 = (t_PPG-t_RR2[:-1])
+        PPT2 = (t_RR1[1: ]-t_PPG)
+                
+        if np.var(data_ABP[np.array(idx_peaksSBP)])<15**2 and np.var(data_ABP[np.array(idx_peaksDBP)])<15**2 and np.var(PPT1)<0.01:
             
-            PPT1 = (t_PPG-t_RR2[:-1])
-            PPT2 = (t_RR1[1: ]-t_PPG)
             if np.mean(PPT1)>np.mean(PPT2):
                 t_PPT.append(PPT1)
             else:
@@ -73,23 +74,21 @@ for i in range(500):
 #            plt.plot(PPT1,'gx',label='PPG peak - previous RR peak ')
 #            plt.plot(PPT2,'rx',label='subsequent RR peak - PPG peak')
 #            plt.legend()
-              
-                
+                             
             t_HR.append(HR)    
             SBP.append(data_ABP[np.array(idx_peaksSBP)])
             DBP.append(data_ABP[np.array(idx_peaksDBP)])
-#                
+                
 #        plt.figure()
 #            
-#        plt.subplot(311)
+#        plt.subplot(211)
 #        plt.plot(t, data_PPG)
 #        plt.scatter(t[idx_peaksPPG], data_PPG[idx_peaksPPG],c = 'g')
-#        
-#        plt.subplot(312)
+#
 #        plt.plot(t,data_ECG)
 #        plt.scatter(t[idx_peaksECG],data_ECG[idx_peaksECG], c ='r')
 #        
-#        plt.subplot(313)
+#        plt.subplot(212)
 #        plt.plot(t,data_ABP)
 #        plt.scatter(t[idx_peaksDBP], data_ABP[idx_peaksDBP], c = 'y')
 #        plt.scatter(t[idx_peaksSBP], data_ABP[idx_peaksSBP], c = 'k')
@@ -114,6 +113,3 @@ with open(path_SBP, 'wb') as f:
     
 with open(path_DBP, 'wb') as f:  
     pickle.dump(DBP, f)
-
-
-
