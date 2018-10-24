@@ -4,6 +4,7 @@ import numpy as np
 import os
 #Plot
 import matplotlib.pylab as plt
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import seaborn as sns
 #Scale
 from sklearn.preprocessing import scale
@@ -34,14 +35,11 @@ with open(path_DBP, 'rb') as f:
 #########################################################################
 n = len(HRtrain)
     
-aSBP = np.empty(n)
-bSBP = np.empty(n)
+errorSBP = np.zeros(n)
+errorDBP = np.zeros(n)
 
-aDBP = np.empty(n)
-bDBP = np.empty(n)
-
-errorSBP = np.empty(n)
-errorDBP = np.empty(n)
+estimatedSBP = []
+estimatedDBP = []
 
 ##########################################################################
 
@@ -69,25 +67,17 @@ for i in range(n):
     regSBP.fit(X, y1)
     regDBP.fit(X, y2)
     
-    aSBP[i], bSBP[i] = regSBP.coef_
-    aDBP[i], bDBP[i] = regDBP.coef_
+    estimatedSBP.append(regSBP.predict(X))
+    estimatedDBP.append(regDBP.predict(X))
     
     errorSBP[i] = ( 1/(len(y1)) * sum((regSBP.predict(X)-y1)**2) )**0.5
     errorDBP[i] = ( 1/(len(y2)) * sum((regDBP.predict(X)-y2)**2) )**0.5
-    
+       
 ############################################################################ 
     
- 
-print('aSBP')
-print('mean',np.mean(aSBP) , 'std', np.var(aSBP)**0.5)
-print('bSBP')
-print('mean',np.mean(bSBP) , 'std', np.var(bSBP)**0.5)
+
 print('Root Mean Squared Error SBP')
 print('mean',np.mean(errorSBP),'std', np.var(errorSBP)**0.5)
-print('aDBP')
-print('mean',np.mean(aDBP) , 'std', np.var(aDBP)**0.5)
-print('bDBP')
-print('mean',np.mean(bDBP) , 'std', np.var(bDBP)**0.5)
 print('Root Mean Squared Error DBP')
 print('mean',np.mean(errorDBP),'std', np.var(errorDBP)**0.5)
 
@@ -100,3 +90,7 @@ plt.xlabel('Blood Pressure') # Set text for the x axis
 plt.ylabel('RMSE')# Set text for y axis
 plt.title('Multiple Logarithmic Regression')
 plt.show()
+
+############################
+
+
