@@ -4,6 +4,9 @@ import numpy as np
 import os
 #Plot
 import matplotlib.pylab as plt
+import seaborn as sns
+#Scale
+from sklearn.preprocessing import scale
 #Save variables
 import pickle
 
@@ -23,10 +26,10 @@ with open(path_PPT, 'rb') as f:
     PPTtrain = pickle.load(f)
     
 with open(path_SBP, 'rb') as f:
-    SBPtrain = pickle.load(f)
+    DBPtrain = pickle.load(f)
     
 with open(path_DBP, 'rb') as f:
-    DBPtrain = pickle.load(f)
+    SBPtrain = pickle.load(f)
     
 #########################################################################
 n = len(HRtrain)
@@ -44,18 +47,10 @@ errorDBP = np.empty(n)
 
 for i in range(n):
     
-    HR_norm = (HRtrain[i]-np.mean(HRtrain[i]))/(np.var(HRtrain[i])**0.5)
-    logPPT_norm = (np.log(PPTtrain[i])-np.mean(np.log(PPTtrain[i])))/(np.var(np.log(PPTtrain[i]))**0.5)
-    
-    if np.var(DBPtrain[i])**0.5 > 0:
-        DPB_norm = (DBPtrain[i]-np.mean(DBPtrain[i]))/(np.var(DBPtrain[i])**0.5)
-    else:
-        DPB_norm = (DBPtrain[i]-np.mean(DBPtrain[i]))
-        
-    if (np.var(SBPtrain[i])**0.5) > 0:
-        SBP_norm = (SBPtrain[i]-np.mean(SBPtrain[i]))/(np.var(SBPtrain[i])**0.5)
-    else:
-        SBP_norm = (SBPtrain[i]-np.mean(SBPtrain[i]))
+    HR_norm     = scale(HRtrain[i])
+    logPPT_norm = scale(np.log(PPTtrain[i]))
+    DPB_norm    = scale(DBPtrain[i])     
+    SBP_norm    = scale(SBPtrain[i])
     
     idx = np.ones(np.shape(HR_norm), dtype=bool)
     idx = np.where(abs(HR_norm)<2,idx,False)
@@ -77,27 +72,31 @@ for i in range(n):
     aSBP[i], bSBP[i] = regSBP.coef_
     aDBP[i], bDBP[i] = regDBP.coef_
     
-    errorSBP[i] = 1/(len(y1)) * sum((regSBP.predict(X)-y1)**2)
-    errorDBP[i] = 1/(len(y2)) * sum((regDBP.predict(X)-y2)**2)
+    errorSBP[i] = ( 1/(len(y1)) * sum((regSBP.predict(X)-y1)**2) )**0.5
+    errorDBP[i] = ( 1/(len(y2)) * sum((regDBP.predict(X)-y2)**2) )**0.5
     
 ############################################################################ 
     
-idx_coef = np.ones(n, dtype=bool)
-idx_coef = np.where(abs(aSBP)<2000,idx_coef,False)
-idx_coef = np.where(abs(bSBP)<2000,idx_coef,False)
-idx_coef = np.where(abs(aDBP)<2000,idx_coef,False)
-idx_coef = np.where(abs(bDBP)<2000,idx_coef,False)
-
+ 
 print('aSBP')
-print('mean',np.mean(aSBP[idx_coef]) , 'std', np.var(aSBP[idx_coef])**0.5)
+print('mean',np.mean(aSBP) , 'std', np.var(aSBP)**0.5)
 print('bSBP')
-print('mean',np.mean(bSBP[idx_coef]) , 'std', np.var(bSBP[idx_coef])**0.5)
-print('Mean Squared Error SBP')
-print(np.mean(errorSBP[idx_coef]))
+print('mean',np.mean(bSBP) , 'std', np.var(bSBP)**0.5)
+print('Root Mean Squared Error SBP')
+print('mean',np.mean(errorSBP),'std', np.var(errorSBP)**0.5)
 print('aDBP')
-print('mean',np.mean(aDBP[idx_coef]) , 'std', np.var(aDBP[idx_coef])**0.5)
+print('mean',np.mean(aDBP) , 'std', np.var(aDBP)**0.5)
 print('bDBP')
-print('mean',np.mean(bDBP[idx_coef]) , 'std', np.var(bDBP[idx_coef])**0.5)
-print('Mean Squared Error DBP')
-print(np.mean(errorDBP[idx_coef]))
+print('mean',np.mean(bDBP) , 'std', np.var(bDBP)**0.5)
+print('Root Mean Squared Error DBP')
+print('mean',np.mean(errorDBP),'std', np.var(errorDBP)**0.5)
 
+tag = [];
+tag.extend(['Systolic']*np.shape(errorSBP)[0])
+tag.extend(['Diastolic']*np.shape(errorSBP)[0])
+plt.figure()
+sns.violinplot(tag,np.append(errorSBP,errorDBP), palette = "Blues_d", cut=0)
+plt.xlabel('Blood Pressure') # Set text for the x axis
+plt.ylabel('RMSE')# Set text for y axis
+plt.title('Multiple Logarithmic Regression')
+plt.show()
