@@ -28,7 +28,7 @@ DBP = []
 
 #########################################################################
 
-for i in range(200):
+for i in range(1):
     data_PPG, data_ABP, data_ECG = np.genfromtxt(files_csv[i], delimiter=",")
     if np.mean(data_ECG)<0.2:
         data_ECG = - data_ECG
@@ -66,19 +66,19 @@ for i in range(200):
     SBP.append(data_ABP[np.array(idx_peaksSBP)[np.where(np.array(idx_peaksPPG)>0)[0]]])
     DBP.append(data_ABP[np.array(idx_peaksDBP)[np.where(np.array(idx_peaksPPG)>0)[0]]])
         
-#    plt.figure()
-#    plt.subplot(311)
-#    plt.plot(t, data_PPG)
-#    plt.scatter(t[idx_peaksPPG], data_PPG[idx_peaksPPG],c = 'g')
-#    
-#    plt.subplot(312)
-#    plt.plot(t,data_ECG)
-#    plt.scatter(t[idx_peaksECG],data_ECG[idx_peaksECG], c ='r')
-#    
-#    plt.subplot(313)
-#    plt.plot(t,data_ABP)
-#    plt.scatter(t[idx_peaksDBP], data_ABP[idx_peaksDBP], c = 'y')
-#    plt.scatter(t[idx_peaksSBP], data_ABP[idx_peaksSBP], c = 'k')
+    plt.figure()
+    plt.subplot(311)
+    plt.plot(t, data_PPG)
+    plt.scatter(t[idx_peaksPPG], data_PPG[idx_peaksPPG],c = 'g')
+    
+    plt.subplot(312)
+    plt.plot(t,data_ECG)
+    plt.scatter(t[idx_peaksECG],data_ECG[idx_peaksECG], c ='r')
+    
+    plt.subplot(313)
+    plt.plot(t,data_ABP)
+    plt.scatter(t[idx_peaksDBP], data_ABP[idx_peaksDBP], c = 'y')
+    plt.scatter(t[idx_peaksSBP], data_ABP[idx_peaksSBP], c = 'k')
 
 #####################################################################
 
