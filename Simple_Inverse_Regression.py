@@ -31,7 +31,7 @@ with open(path_SBP, 'rb') as f:
 with open(path_DBP, 'rb') as f:
     SBPtrain = pickle.load(f)
     
-#########################################################################
+
 n = len(HRtrain)
     
 aSBP = np.empty(n)
@@ -41,7 +41,6 @@ aDBP = np.empty(n)
 errorSBP = np.empty(n)
 errorDBP = np.empty(n)
 
-##########################################################################
 
 for i in range(n):
     
@@ -71,7 +70,7 @@ for i in range(n):
     errorSBP[i] = ( 1/(len(y1)) * sum((regSBP.predict(X)-y1)**2) )**0.5
     errorDBP[i] = ( 1/(len(y2)) * sum((regDBP.predict(X)-y2)**2) )**0.5
     
-############################################################################ 
+
     
  
 print('aSBP')

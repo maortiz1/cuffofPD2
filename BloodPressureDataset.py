@@ -29,7 +29,7 @@ SBP   = []
 DBP   = []
 
 #########################################################################
-<<<<<<< HEAD
+
 
 for i in range(1):
 =======
@@ -66,7 +66,7 @@ for i in range(1000):
         t_RR2 =  np.delete(t_RR, np.array(idx_del))
         t_PPG = t[idx_peaksPPG]         
         
-<<<<<<< HEAD
+
     plt.figure()
     plt.subplot(311)
     plt.plot(t, data_PPG)
@@ -80,7 +80,7 @@ for i in range(1000):
     plt.plot(t,data_ABP)
     plt.scatter(t[idx_peaksDBP], data_ABP[idx_peaksDBP], c = 'y')
     plt.scatter(t[idx_peaksSBP], data_ABP[idx_peaksSBP], c = 'k')
-=======
+
         PPT1 = (t_PPG-t_RR2[:-1])
         PPT2 = (t_RR1[1: ]-t_PPG)
                 
@@ -112,7 +112,7 @@ for i in range(1000):
 #        plt.plot(t,data_ABP)
 #        plt.scatter(t[idx_peaksDBP], data_ABP[idx_peaksDBP], c = 'y')
 #        plt.scatter(t[idx_peaksSBP], data_ABP[idx_peaksSBP], c = 'k')
->>>>>>> 077995880978b0aac56ef390e2e6566c87464356
+
 
 #####################################################################
 os.chdir(cwd)
