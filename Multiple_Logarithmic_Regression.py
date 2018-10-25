@@ -8,6 +8,10 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import seaborn as sns
 #Scale
 from sklearn.preprocessing import scale
+#ML
+from sklearn.svm import SVR
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import AdaBoostRegressor
 #Save variables
 import pickle
 
@@ -61,11 +65,20 @@ for i in range(n):
     y1  = SBPtrain[i][idx]
     y2  = DBPtrain[i][idx]
     
-    regSBP = linear_model.LinearRegression()
-    regDBP = linear_model.LinearRegression()
+#    regSBP = linear_model.LinearRegression()
+#    regDBP = linear_model.LinearRegression()
+#    
+#    regSBP = SVR(kernel='linear', C=3)
+#    regDBP = SVR(kernel='linear', C=3)
     
-    regSBP.fit(X, y1)
-    regDBP.fit(X, y2)
+#    regDBP = AdaBoostRegressor(n_estimators=100)
+#    regSBP = AdaBoostRegressor(n_estimators=100)
+    
+    regDBP = DecisionTreeRegressor()
+    regSBP = DecisionTreeRegressor()
+    
+    regSBP.fit(X, y1) 
+    regDBP.fit(X, y2) 
     
     estimatedSBP.append(regSBP.predict(X))
     estimatedDBP.append(regDBP.predict(X))
