@@ -29,12 +29,7 @@ SBP   = []
 DBP   = []
 
 #########################################################################
-
-
-for i in range(1):
-=======
 for i in range(1000):
->>>>>>> 077995880978b0aac56ef390e2e6566c87464356
     data_PPG, data_ABP, data_ECG = np.genfromtxt(files_csv[i], delimiter=",")
     print(i)
     if len(data_PPG)>5*60*fr:      
@@ -66,21 +61,6 @@ for i in range(1000):
         t_RR2 =  np.delete(t_RR, np.array(idx_del))
         t_PPG = t[idx_peaksPPG]         
         
-
-    plt.figure()
-    plt.subplot(311)
-    plt.plot(t, data_PPG)
-    plt.scatter(t[idx_peaksPPG], data_PPG[idx_peaksPPG],c = 'g')
-    
-    plt.subplot(312)
-    plt.plot(t,data_ECG)
-    plt.scatter(t[idx_peaksECG],data_ECG[idx_peaksECG], c ='r')
-    
-    plt.subplot(313)
-    plt.plot(t,data_ABP)
-    plt.scatter(t[idx_peaksDBP], data_ABP[idx_peaksDBP], c = 'y')
-    plt.scatter(t[idx_peaksSBP], data_ABP[idx_peaksSBP], c = 'k')
-
         PPT1 = (t_PPG-t_RR2[:-1])
         PPT2 = (t_RR1[1: ]-t_PPG)
                 
@@ -112,7 +92,6 @@ for i in range(1000):
 #        plt.plot(t,data_ABP)
 #        plt.scatter(t[idx_peaksDBP], data_ABP[idx_peaksDBP], c = 'y')
 #        plt.scatter(t[idx_peaksSBP], data_ABP[idx_peaksSBP], c = 'k')
-
 
 #####################################################################
 os.chdir(cwd)
