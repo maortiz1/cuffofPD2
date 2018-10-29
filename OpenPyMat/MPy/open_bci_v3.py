@@ -98,6 +98,7 @@ class OpenBCIBoard(object):
     self.last_reconnect = 0
     self.reconnect_freq = 5
     self.packets_dropped = 0
+    self.chunkdata=[];
 
     #Disconnects from board when terminated
     atexit.register(self.disconnect)
@@ -139,11 +140,13 @@ class OpenBCIBoard(object):
 
     #Initialize check connection
     self.check_connection()
-
+ 
     while self.streaming:
-
+    
       # read current sample
       sample = self._read_serial_binary()
+      self.chunkdata.append(sample)
+      
       # if a daisy module is attached, wait to concatenate two samples (main board + daisy) before passing it to callback
       if self.daisy:
         # odd sample: daisy sample, save for later
@@ -164,8 +167,8 @@ class OpenBCIBoard(object):
         self.stop();
       if self.log:
         self.log_packet_count = self.log_packet_count + 1;
-  
-  
+    
+        
   """
     PARSER:
     Parses incoming data packet into OpenBCISample.
@@ -323,7 +326,7 @@ class OpenBCIBoard(object):
   def print_register_settings(self):
     self.ser.write(b'?')
     time.sleep(0.5)
-    print_incoming_text();
+    self.print_incoming_text();
 
   #DEBBUGING: Prints individual incoming bytes
   def print_bytes_in(self):
@@ -529,6 +532,7 @@ class OpenBCISample(object):
     self.id = packet_id;
     self.channel_data = channel_data;
     self.aux_data = aux_data;
+
 
 
 

@@ -1,5 +1,5 @@
 %%
-addpath(genpath('C:\Users\m_ana\Documents\Septimo\PD2\codigo\cuffofPD2\OpenBCI_MATLAB\Matlab-Python\labstreaminglayer'))
+addpath(genpath('C:\Users\m_ana\Documents\Septimo\PD2\codigo\cuffofPD2\OpenPyMat\MPy\labstreaminglayer'))
 
 %%
 % instantiate the library
@@ -31,5 +31,5 @@ while true
     
     end
 %     plot(chunk (:,:,6))
-    pause(0.05);
+ 
 end

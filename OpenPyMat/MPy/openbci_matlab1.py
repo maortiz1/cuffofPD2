@@ -32,30 +32,17 @@ class StreamerLSL():
                         help="Enable Daisy Module " +
                         "-d")
         args = parser.parse_args()
-        port = "COM4"
+        port = args.port
         print ("\n-------INSTANTIATING BOARD-------")
         self.board = bci.OpenBCIBoard(port, daisy=args.d)
         self.eeg_channels = self.board.getNbEEGChannels()
         self.aux_channels = self.board.getNbAUXChannels()
         self.sample_rate = self.board.getSampleRate()
-        self.chunkdata=[];
-        self.ecg=[];
-        self.ppg=[];
 
         print('{} EEG channels and {} AUX channels at {} Hz'.format(self.eeg_channels, self.aux_channels,self.sample_rate))
 
-    def send(self,sample):        
-#        print(sample.channel_data)
-        if len(self.ecg)==15000:
-            self.ecg=[];
-            self.ppg=[];
-        
-        else:
-            self.chunkdata.append(sample.channel_data)
-            self.ecg.append(sample.channel_data[4])
-            self.ppg.append(sample.channeld_data[6])
-        
-        
+    def send(self,sample):
+        print(sample.channel_data)
         self.outlet_eeg.push_sample(sample.channel_data)
         self.outlet_aux.push_sample(sample.aux_data)
 
@@ -93,8 +80,7 @@ class StreamerLSL():
             s = s + 'c'
         # d: Channels settings back to default
         s = s + 'd'
-        i=0
-        datachunk=[]
+
         while(s != "/exit"):
             # Send char and wait for registers to set
             if (not s):
@@ -128,20 +114,15 @@ class StreamerLSL():
                         # start streaming in a separate thread so we could always send commands in here
                         boardThread = threading.Thread(target=self.board.start_streaming,args=(self.send,-1))
                         boardThread.daemon = True # will stop on exit
-                        
                         try:
-                            boardThread.start()        
-                            
-                            
+                            boardThread.start()
                             print("Streaming data...")
-                                                     
                         except:
                                 raise
                         rec = True
                     elif('test' in s):
-#                        
-#                        test = int(s[s.find("test")+4:])
-#                        self.board.test_signal(test)
+                        test = int(s[s.find("test")+4:])
+                        self.board.test_signal(test)
                         rec = True
                     elif('stop' in s):
                         self.board.stop()
@@ -149,7 +130,6 @@ class StreamerLSL():
                         flush = True
                     if rec == False:
                         print("Command not recognized...")
-                    
 
                 elif s:
                     for c in s:
@@ -162,40 +142,27 @@ class StreamerLSL():
                 line = ''
                 time.sleep(0.1) #Wait to see if the board has anything to report
                 while self.board.ser.inWaiting():
-                    c = self.board.ser.read().decode('utf-8', errors='replace')                   
+                    c = self.board.ser.read().decode('utf-8', errors='replace')
                     line += c
-
                     time.sleep(0.001)
                     if (c == '\n') and not flush:
                         # print('%\t'+line[:-1])
                         line = ''
-                        
-                            
 
                 if not flush:
                     print(line)
-                 
-            
-#                datachunk.append(line)
-#                if len(datachunk)==7500:
-#                    #analizar
-#                    print('yei')
-#                    #flush data chunk
-#                    print(len(datachunk))
-#                    datachunk=[]      
+
             # Take user input
             #s = input('--> ')
-
-                
             if sys.hexversion > 0x03000000:
                 s = input('--> ')
             else:
                 s = raw_input('--> ')
-         #finwhile                   
+
 def main():
     lsl = StreamerLSL()
     lsl.create_lsl()
     lsl.begin()
-    
+
 if __name__ == '__main__':
     main()
