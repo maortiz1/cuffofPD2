@@ -1,0 +1,219 @@
+#:import MeshLinePlot kivy.garden.graph.MeshLinePlot
+Logic:
+    orientation: 'vertical'
+    padding: 10
+    spacing: 10
+    canvas:
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            size: self.size
+    BoxLayout:
+        size_hint: [1, 0.2]
+        Image:
+            source: 'logo.png'
+            keep_ratio: True
+            opacity: 1
+            size_hint: 1, 1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    BoxLayout:
+        BoxLayout:
+            padding: 10
+            spacing: 10
+            orientation: "vertical"
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: [1, 1]
+                Label:
+                    text: 'Electrocardiography'
+                    markup: True
+                    size: self.texture_size
+                    text_size: self.size
+                    font_size: 20
+                    halign: 'center'
+                    valign: 'middle'
+                    size_hint: [1, 0.2]
+                    bold: True
+                BoxLayout:               
+                    Graph:
+                        id: graph
+                        xlabel: ""
+                        ylabel: ""
+                        x_grid:True
+                        y_grid:True
+                        ymin: 0
+                        ymax: 1000
+                Label:
+                    text: 'Photopletismography'
+                    markup: True
+                    size: self.texture_size
+                    text_size: self.size
+                    font_size: 20
+                    halign: 'center'
+                    valign: 'middle'
+                    size_hint: [1, 0.2]
+                    bold: True
+                BoxLayout:
+                    Graph:
+                        id: graph2
+                        xlabel: ""
+                        ylabel: ""
+                        ymin: 0
+                        ymax: 500                        
+        BoxLayout:
+            padding: 10
+            spacing: 10
+            orientation: "vertical"        
+            GridLayout:
+                id: cajas
+                rows: 2             
+                BoxLayout:
+                    orientation: "vertical" 
+                    
+                    canvas:
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                            source: 'formato_cuadros.png'  
+                    Label:
+                        text: 'Heart Rate'
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                    Label:
+                        id: HR
+                        text: '90'
+                        bold: True
+                        valign: 'top'
+                        font_size: 80
+                    Label:
+                        text: 'bpp'
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                    Label:
+                        text: ''
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                BoxLayout:
+                    orientation: "vertical" 
+                    canvas:
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                            source: 'formato_cuadros.png'
+                    Label:
+                        text: 'Oximetry'
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                    Label:
+                        id: PO
+                        text: '83'
+                        bold: True
+                        valign: 'top'
+                        font_size: 80
+                    Label:
+                        text: 'SpO2'
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                    Label:
+                        text: ''
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]               
+                BoxLayout:
+                    orientation: "vertical"
+                    
+                    canvas:
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                            source: 'formato_cuadros.png'   
+                    Label:
+                        text: 'Diastolic BP'
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                    Label:
+                        id: DBP
+                        text: root.random_number
+                        bold: True
+                        valign: 'top'
+                        font_size: 80
+                    Label:
+                        text: 'mmHg'
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                    Label:
+                        text: ''
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                                                           
+                BoxLayout:
+                    
+                    orientation: "vertical"
+                    canvas:
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                            source: 'formato_cuadros.png' 
+                    Label:
+                        text: 'Systolic BP'
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                    Label:
+                        id: SBP
+                        text: '140'
+                        bold: True
+                        valign: 'top'
+                        font_size: 80
+                    Label:
+                        text: 'mmHg'
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                    Label:
+                        text: ''
+                        bold: True
+                        valign: 'top'
+                        font_size: 20
+                        size_hint: [1, 0.2]
+                                
+            GridLayout:
+                padding: 5           
+                rows: 2
+                size_hint: [1, 0.2]
+                orientation: "horizontal"
+                Button:
+                    text: "Start"
+                    bold: True
+                    on_press: root.start()
+                Button:
+                    text: "Stop"
+                    bold: True
+                    on_press: root.stop()
+                Button:
+                    text: "Start Recording"
+                    bold: True
+                    on_press: root.start()
+                Button:
+                    text: "Stop Recording"
+                    bold: True
+                    on_press: root.stop()
