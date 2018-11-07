@@ -41,8 +41,8 @@ Logic:
                         ylabel: ""
                         x_grid:True
                         y_grid:True
-                        ymin: 0
-                        ymax: 1000
+                        ymin: root.minecg
+                        ymax: root.maxecg
                 Label:
                     text: 'Photopletismography'
                     markup: True
@@ -58,8 +58,9 @@ Logic:
                         id: graph2
                         xlabel: ""
                         ylabel: ""
-                        ymin: 0
-                        ymax: 500                        
+                        ymin: root.minppg
+                        ymax: root.maxppg     
+                                           
         BoxLayout:
             padding: 10
             spacing: 10

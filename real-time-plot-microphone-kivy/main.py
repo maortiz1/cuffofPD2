@@ -5,41 +5,23 @@ from kivy.lang import Builder
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
 from kivy.garden.graph import MeshLinePlot, LinePlot
 from kivy.properties import StringProperty
-
+from pylsl import StreamInfo, StreamOutlet
+import sys
+import atexit
 import random
+import threading
+import time
 
 from kivy.clock import Clock
 from threading import Thread
-import audioop
-import pyaudio
 
-def get_microphone_level():
-    """
-    source: http://stackoverflow.com/questions/26478315/getting-volume-levels-from-pyaudio-for-use-in-arduino
-    audioop.max alternative to audioop.rms
-    """
-    chunk = 1024
-    FORMAT = pyaudio.paInt16
-    CHANNELS = 1
-    RATE = 44100
-    p = pyaudio.PyAudio()
-    
-
-    s = p.open(format=FORMAT,
-               channels=CHANNELS,
-               rate=RATE,
-               input=True,
-               frames_per_buffer=chunk)
-    global levels
-    while True:
-        data = s.read(chunk)
-        mx = audioop.rms(data, 2)
-        if len(levels) >= 100:
-            levels = []
-        levels.append(mx)
-
+#import audioop
+#import pyaudio
+import open_bci_v3 as bci
 
 class Logic(BoxLayout):
     random_number = StringProperty()
@@ -47,40 +29,169 @@ class Logic(BoxLayout):
         super(Logic, self).__init__()
         self.plot = MeshLinePlot(color=[0.09, 0.63, 0.8, 1])
         self.plot2 = MeshLinePlot(color=[0.09, 0.63, 0.8, 1])
-        
         self.random_number = str('')
-
+        self.minecg=0
+        self.maxecg=1000
+        self.minppg=0
+        self.maxppg=1000
+#        try:
+        
+        self.bcbB = bciBoardConnect()
+        self.bcbB.createlsl()
+        
+#        except:
+#            popup=Popup(title='Error',
+#                content=Label(text='Ocurrio un error conectandose al OPENBCI \n Desconecte el modulo y vuelva a intentar'),
+#                size_hint=(None,None), size=(200,200))
+#            
+#            popup.open()
+#            time.sleep(.5)
+#            App.get_running_app().stop()
+#            sys.exit()
+            
     def change_text(self):
         self.random_number = str(random.randint(1, 100))
     def start(self):
+        
         self.ids.graph2.add_plot(self.plot2)
         self.ids.graph.add_plot(self.plot)
+        self.bcbB.startstreaming()
         
         
         Clock.schedule_interval(self.get_value, 1/250)
         Clock.schedule_interval(self.change_DBP, 0.5)
 
     def stop(self):
+        
         Clock.unschedule(self.get_value)
         Clock.unschedule(self.change_DBP)
+        self.bcbB.stopstreaming()
 
     def get_value(self, dt):
-        self.plot.points = [(i, j/5) for i, j in enumerate(levels)]
-        self.plot2.points = [(i, j/5) for i, j in enumerate(levels)]
-       
+        try:
+            self.minecg=min(self.bcbB.retdataecgchunk())
+            self.maxecg=max(self.bcbB.retdataecgchunk())
+            self.minppg=min(self.bcbB.retdatappgchunk())
+            self.maxppg=max(self.bcbB.retdatappgchunk())
+        except:
+            print('vacio')
+        self.plot.points = [(index,value) for index, value in enumerate(self.bcbB.retdatappgchunk())]
+        
+        self.plot2.points = [(index, value) for index, value in enumerate(self.bcbB.retdataecgchunk())]
+
         
     def change_DBP(self, dt):
         self.random_number = str(random.randint(1, 100))
 
 
+
 class RealTimeMicrophone(App):
     def build(self):
         return Builder.load_file("look.kv")
-
+class bciBoardConnect():
+    def __init__(self):
+        self.board=bci.OpenBCIBoard(port='COM3')
+        self.eeg_channels = self.board.getNbEEGChannels()
+        self.aux_channels = self.board.getNbAUXChannels()
+        self.sample_rate = self.board.getSampleRate()
+     
+        self.graphppg=[];
+        self.graphecg=[];
+        self.ecg=[];
+        self.ppg=[];
+       #setting channel 6 
+        beg='x6000000X';
+        #setting default and reseting board
+        s='sv'
+        s=s+'d'
+        #writing data to board
+        
+        
+        for c in s:
+            if sys.hexversion > 0x03000000:
+                self.board.ser.write(bytes(c, 'utf-8'))
+            else:
+                self.board.ser.write(bytes(c))
+                time.sleep(0.100)
+        #writing channel six data to board
+        time.sleep(0.100)
+        for x in beg:
+            if sys.hexversion > 0x03000000:
+                self.board.ser.write(bytes(x, 'utf-8'))
+            else:
+                self.board.ser.write(bytes(x))
+                time.sleep(0.100)
+                
+                
+        self.ecg=[];
+        self.ppg=[];
+        
+        
+        
+    #function to callback while board streaming data in and save it
+    def send(self,sample):
+        print(sample.channel_data)
+        if len(self.ecg)<30000:
+            self.ecg.append(sample.channel_data[3])
+            self.ppg.append(sample.channel_data[5])
+            
+        else:
+            self.ecg=[]
+            self.ppg=[]
+       
+        if len(self.graphppg)<2000:
+            self.graphppg.append(sample.channel_data[3])
+            self.graphecg.append(sample.channel_data[5])
+        else:
+            self.graphppg=[]
+            self.graphecg=[]
+        self.outlet_eeg.push_sample(sample.channel_data)
+        self.outlet_aux.push_sample(sample.aux_data)          
+    def createlsl(self):
+        info_eeg = StreamInfo("OpenBCI_EEG", 'EEG', self.eeg_channels, self.sample_rate,'float32',"openbci_eeg_id1");
+        info_aux = StreamInfo("OpenBCI_AUX", 'AUX', self.aux_channels,self.sample_rate,'float32',"openbci_aux_id1")
+        self.outlet_eeg = StreamOutlet(info_eeg)
+        self.outlet_aux = StreamOutlet(info_aux)
+    def clean(self):
+        self.board.disconnect()
+        self.outlet_eeg.close_stream()
+        self.outlet_aux.close_stream()
+        atexit.register(clean)
+    def retecg(self):
+        return self.ecg
+    def retppg(self):
+        return self.ppg
+    def startstreaming(self):
+        
+        self.boardThread=threading.Thread(target=self.board.start_streaming,args=(self.send,-1))
+        self.boardThread.daemon=True
+        try:
+            self.boardThread.start()
+           
+        except:
+            raise
+    def stopstreaming(self):
+        self.board.stop()
+        time.sleep(.1)    
+        line=''
+        while self.board.ser.inWaiting():
+            c=self.board.ser.read().decode('utf-8',errors='replace')
+            line+=c
+            time.sleep(0.001)
+            if(c=='\n'):
+                line=''
+    def retdataecgchunk(self):
+        return self.graphecg
+    def retdatappgchunk(self):
+        return self.graphppg
+            
+        
+        
 if __name__ == "__main__":
     levels = []  # store levels of microphone
-    get_level_thread = Thread(target = get_microphone_level)
-    get_level_thread.daemon = True
-    get_level_thread.start()
+#    get_level_thread = Thread(target = get_microphone_level)
+#    get_level_thread.daemon = True
+#    get_level_thread.start()
     RealTimeMicrophone().run()
     
+

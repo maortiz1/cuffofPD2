@@ -1,0 +1,3 @@
+pip install kivy
+pip install kivy-garden
+garden install --app graph

@@ -32,7 +32,7 @@ class StreamerLSL():
                         help="Enable Daisy Module " +
                         "-d")
         args = parser.parse_args()
-        port = "COM4"
+        port = "COM3"
         print ("\n-------INSTANTIATING BOARD-------")
         self.board = bci.OpenBCIBoard(port, daisy=args.d)
         self.eeg_channels = self.board.getNbEEGChannels()
@@ -45,7 +45,7 @@ class StreamerLSL():
         print('{} EEG channels and {} AUX channels at {} Hz'.format(self.eeg_channels, self.aux_channels,self.sample_rate))
 
     def send(self,sample):        
-#        print(sample.channel_data)
+        print(sample.channel_data)
         if len(self.ecg)==15000:
             self.ecg=[];
             self.ppg=[];
@@ -53,7 +53,7 @@ class StreamerLSL():
         else:
             self.chunkdata.append(sample.channel_data)
             self.ecg.append(sample.channel_data[4])
-            self.ppg.append(sample.channeld_data[6])
+            self.ppg.append(sample.channel_data[6])
         
         
         self.outlet_eeg.push_sample(sample.channel_data)
@@ -93,8 +93,8 @@ class StreamerLSL():
             s = s + 'c'
         # d: Channels settings back to default
         s = s + 'd'
-        i=0
-        datachunk=[]
+        
+      
         while(s != "/exit"):
             # Send char and wait for registers to set
             if (not s):
