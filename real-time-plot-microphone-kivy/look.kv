@@ -11,7 +11,7 @@ Logic:
     BoxLayout:
         size_hint: [1, 0.2]
         Image:
-            source: 'logo.png'
+            source: 'logo.jpg'
             keep_ratio: True
             opacity: 1
             size_hint: 1, 1
@@ -51,7 +51,7 @@ Logic:
                         x_ticks_major: 1250/10
                         #Eje y
                         y_grid_label: True
-                        y_ticks_major: (root.maxecg-root.minecg)/10
+                        y_ticks_major: (ecg_graph.ymax-ecg_graph.ymin)/10
                         y_grid: True
 
                         ymin: root.minecg
@@ -81,12 +81,12 @@ Logic:
                         xmin: 0
                         xmax: 1250
                         #Eje y
-                        y_grid_label: True
-                        y_ticks_major: (root.maxppg-root.minppg)/10
-                        y_grid: True
-
                         ymin: root.minppg
                         ymax: root.maxppg
+                        y_grid_label: True
+                        y_ticks_major: (ppg_graph.ymax-ppg_graph.ymin)/10
+                        y_grid: True
+
 
         BoxLayout:
             size_hint: [0.3, 1]

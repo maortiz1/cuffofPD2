@@ -74,13 +74,17 @@ class Logic(BoxLayout):
     def get_value(self, dt):
 
         if len(self.bcbB.retdataecgchunk())>2 and (min(self.bcbB.retdataecgchunk()) < max(self.bcbB.retdataecgchunk())):
-            self.minecg=min(self.bcbB.retdataecgchunk())
-            print(self.minecg)
-            self.maxecg=max(self.bcbB.retdataecgchunk())
-            print(self.maxecg)
+            try:
+                self.minecg=min(self.bcbB.retdataecgchunk())
+                self.maxecg=max(self.bcbB.retdataecgchunk())
+            except:
+                print('nop')
         if len(self.bcbB.retdatappgchunk())>2 and (min(self.bcbB.retdatappgchunk()) < max(self.bcbB.retdatappgchunk())):
-            self.minppg=min(self.bcbB.retdatappgchunk())
-            self.maxppg=max(self.bcbB.retdatappgchunk())
+            try:
+                self.minppg=min(self.bcbB.retdatappgchunk())
+                self.maxppg=max(self.bcbB.retdatappgchunk())
+            except:
+                print('nop2')
 
         self.plot2.points = [(index,value) for index, value in enumerate(self.bcbB.retdatappgchunk())]
 
