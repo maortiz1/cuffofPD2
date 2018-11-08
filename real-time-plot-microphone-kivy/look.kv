@@ -18,6 +18,7 @@ Logic:
             pos_hint: {'center_x': 0.5, 'center_y': 0.5}
     BoxLayout:
         BoxLayout:
+            size_hint: [0.7, 1]
             padding: 10
             spacing: 10
             orientation: "vertical"
@@ -34,13 +35,25 @@ Logic:
                     valign: 'middle'
                     size_hint: [1, 0.2]
                     bold: True
-                BoxLayout:               
+                BoxLayout:
                     Graph:
-                        id: graph
-                        xlabel: ""
-                        ylabel: ""
-                        x_grid:True
-                        y_grid:True
+                        id: ecg_graph
+                        tick_color: 1, 1, 1, 0.2
+                        background_color: 0, 0, 0, 1
+                        draw_border: True
+                        label_options: {'color': [1, 1, 1, 1]}
+                        #Eje x
+                        xmin: 0
+                        xmax: 1250
+                        xlabel: "Time"
+                        x_grid: True
+                        x_grid_label: True
+                        x_ticks_major: 1250/10
+                        #Eje y
+                        y_grid_label: True
+                        y_ticks_major: (root.maxecg-root.minecg)/10
+                        y_grid: True
+
                         ymin: root.minecg
                         ymax: root.maxecg
                 Label:
@@ -55,27 +68,42 @@ Logic:
                     bold: True
                 BoxLayout:
                     Graph:
-                        id: graph2
-                        xlabel: ""
-                        ylabel: ""
+                        id: ppg_graph
+                        tick_color: 1, 1, 1, 0.2
+                        background_color: 0, 0, 0, 1
+                        draw_border: True
+                        label_options: {'color': [1, 1, 1, 1]}
+                        #Eje x
+                        xlabel: "Time"
+                        x_grid: True
+                        x_grid_label: True
+                        x_ticks_major: 1250/10
+                        xmin: 0
+                        xmax: 1250
+                        #Eje y
+                        y_grid_label: True
+                        y_ticks_major: (root.maxppg-root.minppg)/10
+                        y_grid: True
+
                         ymin: root.minppg
-                        ymax: root.maxppg     
-                                           
+                        ymax: root.maxppg
+
         BoxLayout:
+            size_hint: [0.3, 1]
             padding: 10
             spacing: 10
-            orientation: "vertical"        
+            orientation: "vertical"
             GridLayout:
                 id: cajas
-                rows: 2             
+                rows: 2
                 BoxLayout:
-                    orientation: "vertical" 
-                    
+                    orientation: "vertical"
+
                     canvas:
                         Rectangle:
                             size: self.size
                             pos: self.pos
-                            source: 'formato_cuadros.png'  
+                            source: 'formato_cuadros.png'
                     Label:
                         text: 'Heart Rate'
                         bold: True
@@ -101,7 +129,7 @@ Logic:
                         font_size: 20
                         size_hint: [1, 0.2]
                 BoxLayout:
-                    orientation: "vertical" 
+                    orientation: "vertical"
                     canvas:
                         Rectangle:
                             size: self.size
@@ -130,15 +158,15 @@ Logic:
                         bold: True
                         valign: 'top'
                         font_size: 20
-                        size_hint: [1, 0.2]               
+                        size_hint: [1, 0.2]
                 BoxLayout:
                     orientation: "vertical"
-                    
+
                     canvas:
                         Rectangle:
                             size: self.size
                             pos: self.pos
-                            source: 'formato_cuadros.png'   
+                            source: 'formato_cuadros.png'
                     Label:
                         text: 'Diastolic BP'
                         bold: True
@@ -163,15 +191,15 @@ Logic:
                         valign: 'top'
                         font_size: 20
                         size_hint: [1, 0.2]
-                                                           
+
                 BoxLayout:
-                    
+
                     orientation: "vertical"
                     canvas:
                         Rectangle:
                             size: self.size
                             pos: self.pos
-                            source: 'formato_cuadros.png' 
+                            source: 'formato_cuadros.png'
                     Label:
                         text: 'Systolic BP'
                         bold: True
@@ -196,9 +224,9 @@ Logic:
                         valign: 'top'
                         font_size: 20
                         size_hint: [1, 0.2]
-                                
+
             GridLayout:
-                padding: 5           
+                padding: 5
                 rows: 2
                 size_hint: [1, 0.2]
                 orientation: "horizontal"

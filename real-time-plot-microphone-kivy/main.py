@@ -8,7 +8,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.garden.graph import MeshLinePlot, LinePlot
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, NumericProperty, BooleanProperty
 from pylsl import StreamInfo, StreamOutlet
 import sys
 import atexit
@@ -25,6 +25,10 @@ import open_bci_v3 as bci
 
 class Logic(BoxLayout):
     random_number = StringProperty()
+    minecg = NumericProperty()
+    maxecg = NumericProperty()
+    minppg = NumericProperty()
+    maxppg = NumericProperty()
     def __init__(self,):
         super(Logic, self).__init__()
         self.plot = MeshLinePlot(color=[0.09, 0.63, 0.8, 1])
@@ -35,51 +39,54 @@ class Logic(BoxLayout):
         self.minppg=0
         self.maxppg=1000
 #        try:
-        
+
         self.bcbB = bciBoardConnect()
         self.bcbB.createlsl()
-        
+
 #        except:
 #            popup=Popup(title='Error',
 #                content=Label(text='Ocurrio un error conectandose al OPENBCI \n Desconecte el modulo y vuelva a intentar'),
 #                size_hint=(None,None), size=(200,200))
-#            
+#
 #            popup.open()
 #            time.sleep(.5)
 #            App.get_running_app().stop()
 #            sys.exit()
-            
+
     def change_text(self):
         self.random_number = str(random.randint(1, 100))
     def start(self):
-        
-        self.ids.graph2.add_plot(self.plot2)
-        self.ids.graph.add_plot(self.plot)
+
+        self.ids.ppg_graph.add_plot(self.plot2)
+        self.ids.ecg_graph.add_plot(self.plot)
         self.bcbB.startstreaming()
-        
-        
+
+
         Clock.schedule_interval(self.get_value, 1/250)
         Clock.schedule_interval(self.change_DBP, 0.5)
 
     def stop(self):
-        
+
         Clock.unschedule(self.get_value)
         Clock.unschedule(self.change_DBP)
         self.bcbB.stopstreaming()
 
     def get_value(self, dt):
-        try:
+
+        if len(self.bcbB.retdataecgchunk())>2 and (min(self.bcbB.retdataecgchunk()) < max(self.bcbB.retdataecgchunk())):
             self.minecg=min(self.bcbB.retdataecgchunk())
+            print(self.minecg)
             self.maxecg=max(self.bcbB.retdataecgchunk())
+            print(self.maxecg)
+        if len(self.bcbB.retdatappgchunk())>2 and (min(self.bcbB.retdatappgchunk()) < max(self.bcbB.retdatappgchunk())):
             self.minppg=min(self.bcbB.retdatappgchunk())
             self.maxppg=max(self.bcbB.retdatappgchunk())
-        except:
-            print('vacio')
-        self.plot.points = [(index,value) for index, value in enumerate(self.bcbB.retdatappgchunk())]
-        
-        self.plot2.points = [(index, value) for index, value in enumerate(self.bcbB.retdataecgchunk())]
 
-        
+        self.plot2.points = [(index,value) for index, value in enumerate(self.bcbB.retdatappgchunk())]
+
+        self.plot.points = [(index, value) for index, value in enumerate(self.bcbB.retdataecgchunk())]
+
+
     def change_DBP(self, dt):
         self.random_number = str(random.randint(1, 100))
 
@@ -90,23 +97,23 @@ class RealTimeMicrophone(App):
         return Builder.load_file("look.kv")
 class bciBoardConnect():
     def __init__(self):
-        self.board=bci.OpenBCIBoard(port='COM3')
+        self.board=bci.OpenBCIBoard(port='COM5')
         self.eeg_channels = self.board.getNbEEGChannels()
         self.aux_channels = self.board.getNbAUXChannels()
         self.sample_rate = self.board.getSampleRate()
-     
+
         self.graphppg=[];
         self.graphecg=[];
         self.ecg=[];
         self.ppg=[];
-       #setting channel 6 
+       #setting channel 6
         beg='x6000000X';
         #setting default and reseting board
         s='sv'
         s=s+'d'
         #writing data to board
-        
-        
+
+
         for c in s:
             if sys.hexversion > 0x03000000:
                 self.board.ser.write(bytes(c, 'utf-8'))
@@ -121,32 +128,32 @@ class bciBoardConnect():
             else:
                 self.board.ser.write(bytes(x))
                 time.sleep(0.100)
-                
-                
+
+
         self.ecg=[];
         self.ppg=[];
-        
-        
-        
+
+
+
     #function to callback while board streaming data in and save it
     def send(self,sample):
-        print(sample.channel_data)
-        if len(self.ecg)<30000:
+        #print(sample.channel_data)
+        if len(self.ecg)<1250:
             self.ecg.append(sample.channel_data[3])
             self.ppg.append(sample.channel_data[5])
-            
+
         else:
             self.ecg=[]
             self.ppg=[]
-       
-        if len(self.graphppg)<2000:
-            self.graphppg.append(sample.channel_data[3])
-            self.graphecg.append(sample.channel_data[5])
+
+        if len(self.graphppg)<1250:
+            self.graphecg.append(sample.channel_data[3])
+            self.graphppg.append(sample.channel_data[5])
         else:
             self.graphppg=[]
             self.graphecg=[]
         self.outlet_eeg.push_sample(sample.channel_data)
-        self.outlet_aux.push_sample(sample.aux_data)          
+        self.outlet_aux.push_sample(sample.aux_data)
     def createlsl(self):
         info_eeg = StreamInfo("OpenBCI_EEG", 'EEG', self.eeg_channels, self.sample_rate,'float32',"openbci_eeg_id1");
         info_aux = StreamInfo("OpenBCI_AUX", 'AUX', self.aux_channels,self.sample_rate,'float32',"openbci_aux_id1")
@@ -162,17 +169,17 @@ class bciBoardConnect():
     def retppg(self):
         return self.ppg
     def startstreaming(self):
-        
+
         self.boardThread=threading.Thread(target=self.board.start_streaming,args=(self.send,-1))
         self.boardThread.daemon=True
         try:
             self.boardThread.start()
-           
+
         except:
             raise
     def stopstreaming(self):
         self.board.stop()
-        time.sleep(.1)    
+        time.sleep(.1)
         line=''
         while self.board.ser.inWaiting():
             c=self.board.ser.read().decode('utf-8',errors='replace')
@@ -184,14 +191,12 @@ class bciBoardConnect():
         return self.graphecg
     def retdatappgchunk(self):
         return self.graphppg
-            
-        
-        
+
+
+
 if __name__ == "__main__":
     levels = []  # store levels of microphone
 #    get_level_thread = Thread(target = get_microphone_level)
 #    get_level_thread.daemon = True
 #    get_level_thread.start()
     RealTimeMicrophone().run()
-    
-
