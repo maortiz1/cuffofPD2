@@ -85,12 +85,13 @@ class Logic(BoxLayout):
 #        Clock.unschedule(partial(self.putdataontxt, self.file))
         ecg=self.bcbB.retecgT()
         ppg= self.bcbB.retppgT()
+        
         for s in ecg:
             self.file.write(str(s) + ',')
         for d in ppg:
             self.file1.write(str(d) + ',')
              
-             
+        self.bcbB.flush()
         self.file.close()
         self.file1.close()
 
@@ -223,6 +224,9 @@ class bciBoardConnect():
         return self.ecgT
     def retppgT(self):
         return self.ppgT
+    def flush(self):
+        self.ppgT=[]
+        self.ecgT=[]
 
 
 
