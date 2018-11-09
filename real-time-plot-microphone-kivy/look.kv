@@ -44,11 +44,11 @@ Logic:
                         label_options: {'color': [1, 1, 1, 1]}
                         #Eje x
                         xmin: 0
-                        xmax: 1250
-                        xlabel: "Time"
+                        xmax: 5
+                        xlabel: "Time (s)"
                         x_grid: True
                         x_grid_label: True
-                        x_ticks_major: 1250/10
+                        x_ticks_major: 5/10
                         #Eje y
                         y_grid_label: True
                         y_ticks_major: (ecg_graph.ymax-ecg_graph.ymin)/10
@@ -74,12 +74,12 @@ Logic:
                         draw_border: True
                         label_options: {'color': [1, 1, 1, 1]}
                         #Eje x
-                        xlabel: "Time"
+                        xlabel: "Time (s)"
                         x_grid: True
                         x_grid_label: True
-                        x_ticks_major: 1250/10
+                        x_ticks_major: 5/10
                         xmin: 0
-                        xmax: 1250
+                        xmax: 5
                         #Eje y
                         ymin: root.minppg
                         ymax: root.maxppg
@@ -241,8 +241,8 @@ Logic:
                 Button:
                     text: "Start Recording"
                     bold: True
-                    on_press: root.start()
+                    on_press: root.start_recording()
                 Button:
                     text: "Stop Recording"
                     bold: True
-                    on_press: root.stop()
+                    on_press: root.stop_recording()

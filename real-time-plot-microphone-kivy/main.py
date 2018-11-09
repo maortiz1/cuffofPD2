@@ -10,11 +10,13 @@ from kivy.uix.label import Label
 from kivy.garden.graph import MeshLinePlot, LinePlot
 from kivy.properties import StringProperty, NumericProperty, BooleanProperty
 from pylsl import StreamInfo, StreamOutlet
+from functools import partial
 import sys
 import atexit
 import random
 import threading
 import time
+import datetime
 
 from kivy.clock import Clock
 from threading import Thread
@@ -38,6 +40,7 @@ class Logic(BoxLayout):
         self.maxecg=1000
         self.minppg=0
         self.maxppg=1000
+        self.file = []
 #        try:
 
         self.bcbB = bciBoardConnect()
@@ -61,7 +64,6 @@ class Logic(BoxLayout):
         self.ids.ecg_graph.add_plot(self.plot)
         self.bcbB.startstreaming()
 
-
         Clock.schedule_interval(self.get_value, 1/250)
         Clock.schedule_interval(self.change_DBP, 0.5)
 
@@ -70,6 +72,18 @@ class Logic(BoxLayout):
         Clock.unschedule(self.get_value)
         Clock.unschedule(self.change_DBP)
         self.bcbB.stopstreaming()
+
+    def start_recording(self):
+        now = datetime.datetime.now()
+        self.file = open('%i-%i-%i-%i.txt'%(now.month, now.day, now.hour ,now.minute),'w')
+        Clock.schedule_interval(partial(self.putdataontxt, self.file), 1/250)
+
+    def stop_recording(self):
+        Clock.unschedule(partial(self.putdataontxt, self.file))
+
+    def putdataontxt(self, file, dt):
+        file.write('\n %d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1]))
+        print('%d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1]))
 
     def get_value(self, dt):
 
@@ -86,15 +100,13 @@ class Logic(BoxLayout):
             except:
                 print('nop2')
 
-        self.plot2.points = [(index,value) for index, value in enumerate(self.bcbB.retdatappgchunk())]
+        self.plot2.points = [(index/259,value) for index, value in enumerate(self.bcbB.retdatappgchunk())]
 
-        self.plot.points = [(index, value) for index, value in enumerate(self.bcbB.retdataecgchunk())]
+        self.plot.points = [(index/250, value) for index, value in enumerate(self.bcbB.retdataecgchunk())]
 
 
     def change_DBP(self, dt):
         self.random_number = str(random.randint(1, 100))
-
-
 
 class RealTimeMicrophone(App):
     def build(self):
@@ -133,22 +145,14 @@ class bciBoardConnect():
                 self.board.ser.write(bytes(x))
                 time.sleep(0.100)
 
-
-        self.ecg=[];
-        self.ppg=[];
-
-
+        self.ecg = []
+        self.ppg = []
 
     #function to callback while board streaming data in and save it
     def send(self,sample):
         #print(sample.channel_data)
-        if len(self.ecg)<1250:
-            self.ecg.append(sample.channel_data[3])
-            self.ppg.append(sample.channel_data[5])
-
-        else:
-            self.ecg=[]
-            self.ppg=[]
+        self.ecg = (sample.channel_data[3])
+        self.ppg = (sample.channel_data[5])
 
         if len(self.graphppg)<1250:
             self.graphecg.append(sample.channel_data[3])
@@ -158,6 +162,7 @@ class bciBoardConnect():
             self.graphecg=[]
         self.outlet_eeg.push_sample(sample.channel_data)
         self.outlet_aux.push_sample(sample.aux_data)
+
     def createlsl(self):
         info_eeg = StreamInfo("OpenBCI_EEG", 'EEG', self.eeg_channels, self.sample_rate,'float32',"openbci_eeg_id1");
         info_aux = StreamInfo("OpenBCI_AUX", 'AUX', self.aux_channels,self.sample_rate,'float32',"openbci_aux_id1")
@@ -168,10 +173,7 @@ class bciBoardConnect():
         self.outlet_eeg.close_stream()
         self.outlet_aux.close_stream()
         atexit.register(clean)
-    def retecg(self):
-        return self.ecg
-    def retppg(self):
-        return self.ppg
+
     def startstreaming(self):
 
         self.boardThread=threading.Thread(target=self.board.start_streaming,args=(self.send,-1))
@@ -195,6 +197,8 @@ class bciBoardConnect():
         return self.graphecg
     def retdatappgchunk(self):
         return self.graphppg
+    def retbothdata(self):
+        return self.ecg, self.ppg
 
 
 
