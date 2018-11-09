@@ -133,7 +133,7 @@ class bciBoardConnect():
         self.ecg=[];
         self.ppg=[];
        #setting channel 6
-        beg=['x6000000X','x4060110X'];
+        beg='x6000000X';
         #setting default and reseting board
         s='sv'
         s=s+'d'
@@ -148,13 +148,13 @@ class bciBoardConnect():
                 time.sleep(0.100)
         #writing channel six data to board
         time.sleep(0.100)
-        for dat in beg:
-            for x in dat:
-                if sys.hexversion > 0x03000000:
-                    self.board.ser.write(bytes(x, 'utf-8'))
-                else:
-                    self.board.ser.write(bytes(x))
-                    time.sleep(0.100)
+#        for dat in beg:
+        for x in beg:
+            if sys.hexversion > 0x03000000:
+               self.board.ser.write(bytes(x, 'utf-8'))
+            else:
+                self.board.ser.write(bytes(x))
+                time.sleep(0.100)
 
         self.ecg = []
         self.ppg = []
