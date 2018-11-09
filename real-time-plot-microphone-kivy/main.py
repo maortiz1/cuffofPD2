@@ -63,7 +63,7 @@ class Logic(BoxLayout):
         self.ids.ppg_graph.add_plot(self.plot2)
         self.ids.ecg_graph.add_plot(self.plot)
         self.bcbB.startstreaming()
-
+        
         Clock.schedule_interval(self.get_value, 1/250)
         Clock.schedule_interval(self.change_DBP, 0.5)
 
@@ -75,15 +75,25 @@ class Logic(BoxLayout):
 
     def start_recording(self):
         now = datetime.datetime.now()
-        self.file = open('%i-%i-%i-%i.txt'%(now.month, now.day, now.hour ,now.minute),'w')
+        self.datanow=[];
+        
+        self.file = open('%i-%i-%i-%i.txt'%(now.month, now.day, now.hour ,now.minute),'a+')
         Clock.schedule_interval(partial(self.putdataontxt, self.file), 1/250)
 
     def stop_recording(self):
-        Clock.unschedule(partial(self.putdataontxt, self.file))
+#        Clock.unschedule(partial(self.putdataontxt, self.file))
+    
+        for s in self.datanow:
+            self.file.write(str(s) + '\n')
+             
+             
+        self.file.close()
 
     def putdataontxt(self, file, dt):
-        file.write('\n %d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1]))
-        print('%d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1]))
+#        file.write('\n %d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1]))
+        s='%d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1])
+        self.datanow.append(s)
+#        self.datanow.appebd(self.bcbB.retbothdata()[1])
 
     def get_value(self, dt):
 
@@ -113,7 +123,7 @@ class RealTimeMicrophone(App):
         return Builder.load_file("look.kv")
 class bciBoardConnect():
     def __init__(self):
-        self.board=bci.OpenBCIBoard(port='COM5')
+        self.board=bci.OpenBCIBoard(port='COM3')
         self.eeg_channels = self.board.getNbEEGChannels()
         self.aux_channels = self.board.getNbAUXChannels()
         self.sample_rate = self.board.getSampleRate()
@@ -123,12 +133,12 @@ class bciBoardConnect():
         self.ecg=[];
         self.ppg=[];
        #setting channel 6
-        beg='x6000000X';
+        beg=['x6000000X','x4060110X'];
         #setting default and reseting board
         s='sv'
         s=s+'d'
         #writing data to board
-
+        s=s+'F'
 
         for c in s:
             if sys.hexversion > 0x03000000:
@@ -138,12 +148,13 @@ class bciBoardConnect():
                 time.sleep(0.100)
         #writing channel six data to board
         time.sleep(0.100)
-        for x in beg:
-            if sys.hexversion > 0x03000000:
-                self.board.ser.write(bytes(x, 'utf-8'))
-            else:
-                self.board.ser.write(bytes(x))
-                time.sleep(0.100)
+        for dat in beg:
+            for x in dat:
+                if sys.hexversion > 0x03000000:
+                    self.board.ser.write(bytes(x, 'utf-8'))
+                else:
+                    self.board.ser.write(bytes(x))
+                    time.sleep(0.100)
 
         self.ecg = []
         self.ppg = []
