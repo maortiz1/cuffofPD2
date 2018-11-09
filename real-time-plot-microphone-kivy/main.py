@@ -75,25 +75,30 @@ class Logic(BoxLayout):
 
     def start_recording(self):
         now = datetime.datetime.now()
-        self.datanow=[];
+#        self.datanow=[];
         
-        self.file = open('%i-%i-%i-%i.txt'%(now.month, now.day, now.hour ,now.minute),'a+')
-        Clock.schedule_interval(partial(self.putdataontxt, self.file), 1/250)
+        self.file = open('%i-%i-%i-%i_ecg.txt'%(now.month, now.day, now.hour ,now.minute),'a+')
+        self.file1 = open('%i-%i-%i-%i_ppg.txt'%(now.month, now.day, now.hour ,now.minute),'a+')
+#        Clock.schedule_interval((self.putdataontxt), 1/250)
 
     def stop_recording(self):
 #        Clock.unschedule(partial(self.putdataontxt, self.file))
-    
-        for s in self.datanow:
-            self.file.write(str(s) + '\n')
+        ecg=self.bcbB.retecgT()
+        ppg= self.bcbB.retppgT()
+        for s in ecg:
+            self.file.write(str(s) + ',')
+        for d in ppg:
+            self.file1.write(str(d) + ',')
              
              
         self.file.close()
+        self.file1.close()
 
-    def putdataontxt(self, file, dt):
-#        file.write('\n %d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1]))
-        s='%d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1])
-        self.datanow.append(s)
-#        self.datanow.appebd(self.bcbB.retbothdata()[1])
+#    def putdataontxt(self, dt):
+##        file.write('\n %d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1]))
+##        s='%d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1])
+##        self.datanow.append(s)
+##        self.datanow.appebd(self.bcbB.retbothdata()[1])
 
     def get_value(self, dt):
 
@@ -158,13 +163,15 @@ class bciBoardConnect():
 
         self.ecg = []
         self.ppg = []
+        self.ecgT=[]
+        self.ppgT=[]
 
     #function to callback while board streaming data in and save it
     def send(self,sample):
         #print(sample.channel_data)
         self.ecg = (sample.channel_data[3])
         self.ppg = (sample.channel_data[5])
-
+        
         if len(self.graphppg)<1250:
             self.graphecg.append(sample.channel_data[3])
             self.graphppg.append(sample.channel_data[5])
@@ -173,6 +180,8 @@ class bciBoardConnect():
             self.graphecg=[]
         self.outlet_eeg.push_sample(sample.channel_data)
         self.outlet_aux.push_sample(sample.aux_data)
+        self.ecgT.append(sample.channel_data[3])
+        self.ppgT.append(sample.channel_data[5])
 
     def createlsl(self):
         info_eeg = StreamInfo("OpenBCI_EEG", 'EEG', self.eeg_channels, self.sample_rate,'float32',"openbci_eeg_id1");
@@ -210,6 +219,10 @@ class bciBoardConnect():
         return self.graphppg
     def retbothdata(self):
         return self.ecg, self.ppg
+    def retecgT(self):
+        return self.ecgT
+    def retppgT(self):
+        return self.ppgT
 
 
 

@@ -9,11 +9,11 @@ import matplotlib.pylab as plt
 import scipy
 from scipy.signal import kaiserord, lfilter, firwin, freqz
 
-datos = np.genfromtxt('11-9-9-1.txt')
+datos = np.genfromtxt('11-9-10-50_ecg.txt',delimiter=',')
 plt.figure()
-plt.plot(datos[:,0])
-plt.figure()
-plt.plot(datos[:,1])
+plt.plot(datos)
+#plt.figure()
+#plt.plot(datos[:,1])
 
 fs = 250
 N = datos.shape[0]
