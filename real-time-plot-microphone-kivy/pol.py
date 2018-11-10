@@ -7,47 +7,44 @@ Created on Fri Nov  9 09:15:45 2018
 import numpy as np
 import matplotlib.pylab as plt
 import scipy
-from scipy.signal import kaiserord, lfilter, firwin, freqz
+from scipy.signal import filtfilt, kaiserord, lfilter, firwin, freqz
+from sklearn.preprocessing import scale
+#Biosignals
+import neurokit as nk
 
-datos = np.genfromtxt('11-9-11-0_ecg.txt',delimiter=',')
+datos = np.genfromtxt('https://raw.githubusercontent.com/maortiz1/cuffofPD2/master/real-time-plot-microphone-kivy/11-9-11-17_ecg.txt',delimiter=',')
 plt.figure()
 plt.plot(datos)
-datos2 = np.genfromtxt('11-9-11-0_ppg.txt',delimiter=',')
+#plt.figure()
+#plt.plot(datos[:,1])
+
+b, a = scipy.signal.butter(1,[0.04,0.92],'bandpass')
+x = datos[:-1]
+# ecg
+y = filtfilt(b, a, x, method='gust')
+
+# b, a = scipy.signal.butter(1,[0.01,0.04],'bandpass')
+# x = datos[:-1]
+# # ppg
+# y = filtfilt(b, a, x, method='gust')
+#
+# # b, a = scipy.signal.butter(1,0.01,'highpass')
+# y = filtfilt(y, a, x, method='gust')
+print(y)
 plt.figure()
-plt.plot(datos2)
+plt.plot(x,'r')
+plt.plot(y,'g')
+
 
 fs = 250
-N = datos.shape[0]
-amp = 2*np.sqrt(2)
-t = np.array(N)/fs
+data_ECG = scale(x)
+t = (np.arange(len(data_ECG))/fs)
+idx_peaksECG = nk.bio_process(ecg = data_ECG, sampling_rate=125)['ECG']['R_Peaks']
+t_RR = t[idx_peaksECG]
 
-x = datos[:,0]
-nyq_rate = fs / 2.0
-width = 5.0/nyq_rate
-ripple_db = 60.0
+plt.figure()
 
-N, beta = kaiserord(ripple_db, width)
-
-# The cutoff frequency of the filter.
-cutoff_hz = 10.0
-
-# Use firwin with a Kaiser window to create a lowpass FIR filter.
-taps = firwin(N, cutoff_hz/nyq_rate, window=('kaiser', beta))
-
-# Use lfilter to filter x with the FIR filter.
-filtered_x = lfilter(taps, 1.0, x)
-
-
-# Plot the original signal.
-plt.plot(t, x)
-delay = 0.5 * (N-1) / fs
-# Plot the filtered signal, shifted to compensate for the phase delay.
-plt.plot(t-delay, filtered_x, 'r-')
-# Plot just the "good" part of the filtered signal.  The first N-1
-# samples are "corrupted" by the initial conditions.
-plt.plot(t[N-1:]-delay, filtered_x[N-1:], 'g', linewidth=4)
-
-plt.xlabel('t')
-plt.grid(True)
+plt.plot(t,data_ECG)
+plt.scatter(t[idx_peaksECG],data_ECG[idx_peaksECG], c ='r')
 
 plt.show()
