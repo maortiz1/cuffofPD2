@@ -76,7 +76,7 @@ class Logic(BoxLayout):
     def start_recording(self):
         now = datetime.datetime.now()
 #        self.datanow=[];
-        
+        self.bcbB.chSave()
         self.file = open('%i-%i-%i-%i_ecg.txt'%(now.month, now.day, now.hour ,now.minute),'a+')
         self.file1 = open('%i-%i-%i-%i_ppg.txt'%(now.month, now.day, now.hour ,now.minute),'a+')
 #        Clock.schedule_interval((self.putdataontxt), 1/250)
@@ -94,6 +94,7 @@ class Logic(BoxLayout):
         self.bcbB.flush()
         self.file.close()
         self.file1.close()
+        self.bcbB.chSave()
 
 #    def putdataontxt(self, dt):
 ##        file.write('\n %d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1]))
@@ -133,7 +134,7 @@ class bciBoardConnect():
         self.eeg_channels = self.board.getNbEEGChannels()
         self.aux_channels = self.board.getNbAUXChannels()
         self.sample_rate = self.board.getSampleRate()
-
+        self.save=False
         self.graphppg=[];
         self.graphecg=[];
         self.ecg=[];
@@ -181,8 +182,9 @@ class bciBoardConnect():
             self.graphecg=[]
         self.outlet_eeg.push_sample(sample.channel_data)
         self.outlet_aux.push_sample(sample.aux_data)
-        self.ecgT.append(sample.channel_data[3])
-        self.ppgT.append(sample.channel_data[5])
+        if self.save:
+            self.ecgT.append(sample.channel_data[3])
+            self.ppgT.append(sample.channel_data[5])
 
     def createlsl(self):
         info_eeg = StreamInfo("OpenBCI_EEG", 'EEG', self.eeg_channels, self.sample_rate,'float32',"openbci_eeg_id1");
@@ -227,7 +229,11 @@ class bciBoardConnect():
     def flush(self):
         self.ppgT=[]
         self.ecgT=[]
-
+    def chSave(self):
+        if self.save==False:
+            self.save=True
+        else:
+            self.save=False
 
 
 if __name__ == "__main__":
