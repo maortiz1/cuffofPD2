@@ -33,26 +33,31 @@ nombres = datos_t[::9,0]
 t_HR  = []
 t_PPT = []
 
-for i in range(4):#(nombres.shape[0]):
+cortar = [150000, 50000, 22000, 105000, 115000, 46000, 64000, 43000, 60000, 70000, 80000, 88000, 72000, 5500, 22000, 46000, 13000, 29000, 65000]
+for k in range(nombres.shape[0]):
+    
     #Tener los datos de cada uno de los .txt
     t_HR_cu  = []
     t_PPT_cu = []
-    idx, DBP, SBP = datos_n[2+i*9:9+i*9,0], datos_n[2+i*9:9+i*9,1], datos_n[2+i*9:9+i*9,2]
+    idx, DBP, SBP = datos_n[2+k*9:9+k*9,0], datos_n[2+k*9:9+k*9,1], datos_n[2+k*9:9+k*9,2]
 
-    idx = np.cumsum(np.array(idx[-1:0:-1], dtype = int))*250
-    ECG = np.genfromtxt('%s_ecg.txt'%nombres[i], delimiter = ',')
-    ECG = ECG[:-1]
-    ECG = ECG[-1:0:-1]
-    PPG = np.genfromtxt('%s_ppg.txt'%nombres[i], delimiter = ',')
-    PPG = PPG[:-1]
-    PPG = PPG[-1:0:-1]
+    idx = np.cumsum(np.array(idx[::-1], dtype = int))*250
 
-    idx_a = idx[0]
+    ECG = np.genfromtxt('%s_ecg.txt'%nombres[k], delimiter = ',')
+    ECG = ECG[cortar[k]:-1]
+
+    PPG = np.genfromtxt('%s_ppg.txt'%nombres[k], delimiter = ',')
+    PPG = PPG[cortar[k]:-1]
+
+    print(ECG.shape)
+    print(PPG.shape)
+    idx_a = 0
 
     b_ecg, a_ecg = scipy.signal.butter(1,[0.04,0.92],'bandpass')
     b_ppg, a_ppg = scipy.signal.butter(1,[0.01,0.04],'bandpass')
 
-    for j in idx[1:]:
+
+    for j in idx:
         idx_d = j
 
         ECG_aux = ECG[idx_a:idx_d]
@@ -65,7 +70,6 @@ for i in range(4):#(nombres.shape[0]):
         t = (np.arange(len(ECG_aux))/250)
         try:
             idx_peaksECG = nk.bio_process(ecg = ECG_aux, sampling_rate=250)['ECG']['R_Peaks']
-
             idx_peaksECG = np.delete(idx_peaksECG, np.where(np.diff(t[idx_peaksECG])<0.4))
             
             t_RR = t[idx_peaksECG]
@@ -82,7 +86,7 @@ for i in range(4):#(nombres.shape[0]):
 
                 PPG_peak = (find_peaks(PPG_aux[ran_0:ran_1], distance = ran_1-ran_0 )[0] + ran_0)
 
-                if PPG_peak.size>0 and PPG_aux[int(PPG_peak[0])]>500:
+                if PPG_peak.size>0: #and PPG_aux[int(PPG_peak[0])]>500:
                     idx_peaksPPG.append(int(PPG_peak[0]))
                 else:
                     idx_del.append(i)
@@ -91,19 +95,21 @@ for i in range(4):#(nombres.shape[0]):
             t_RR1 =  np.delete(t_RR, np.array(idx_del)+1)
             t_RR2 =  np.delete(t_RR, np.array(idx_del))
             t_PPG = t[idx_peaksPPG]
-
-            plt.figure()
-            plt.subplot(211)
-            plt.plot(t,ECG_aux)
-            plt.scatter(t_RR,ECG_aux[idx_peaksECG], c='r')
-            plt.subplot(212)
-            plt.plot(t,PPG_aux,'g')
-            plt.scatter(t_PPG,PPG_aux[idx_peaksPPG], c='y')
-
+            
+#            plt.figure()
+#            plt.subplot(211)
+#            plt.plot(t,ECG_aux)
+#            plt.scatter(t_RR,ECG_aux[idx_peaksECG], c='r')
+#            plt.title(nombres[k])
+#            plt.subplot(212)
+#            plt.plot(t,PPG_aux,'g')
+#            plt.scatter(t_PPG,PPG_aux[idx_peaksPPG], c='y')
+            
             PPT1 = (t_PPG-t_RR2[:-1])
             PPT2 = (t_RR1[1: ]-t_PPG)
             try:
                 t_HR_cu.append(np.mean(HR))
+                
                 if np.mean(PPT1)>np.mean(PPT2):
                     t_PPT_cu.append(np.mean(PPT1))
                 else:
@@ -125,7 +131,9 @@ for i in range(4):#(nombres.shape[0]):
     t_PPT.append(t_PPT_cu)
 
 
-plt.show()
+
+
+
 #datos = np.genfromtxt('https://raw.githubusercontent.com/maortiz1/cuffofPD2/master/real-time-plot-microphone-kivy/11-9-11-17_ecg.txt',delimiter=',')
 #plt.figure()
 #plt.plot(datos)
