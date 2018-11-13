@@ -17,7 +17,12 @@ import random
 import threading
 import time
 import datetime
-
+import numpy as np
+from statsmodels import robust
+import matplotlib.pylab as plt
+import scipy
+from scipy.signal import filtfilt
+import pywt
 from kivy.clock import Clock
 from threading import Thread
 
@@ -95,12 +100,6 @@ class Logic(BoxLayout):
         self.file.close()
         self.file1.close()
         self.bcbB.chSave()
-
-#    def putdataontxt(self, dt):
-##        file.write('\n %d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1]))
-##        s='%d  %d'%(self.bcbB.retbothdata()[0],self.bcbB.retbothdata()[1])
-##        self.datanow.append(s)
-##        self.datanow.appebd(self.bcbB.retbothdata()[1])
 
     def get_value(self, dt):
 
@@ -234,7 +233,46 @@ class bciBoardConnect():
             self.save=True
         else:
             self.save=False
+class filter():
+    def __init__(self):
+        self.becg, self.aecg = scipy.signal.butter(1,[0.08,0.72],'bandpass')
+        self.bllnotch, self.allnotch = scipy.signal.iirnotch(0.48,30)
+        self.bppg,self.appg= scipy.signal.butter(1,[0.01,0.04],'bandpass')
+    def filtrar(self,dataecg,datappg):
+        ecg=filtfilt(self.bllnotch, self.allnotch, dataecg, method='gust')
+        ppg=filtfilt(self.bllnotch, self.allnotch, datappg, method='gust')
+        datafecg=filtfilt(self.becg,self.aecg,ecg,method='gust')
+        datafecg=self.waveletFilt(datafecg,"db4",1)
+        datafppg=filtfilt(self.bppg,self.appg,ppg,method='gust')
+        return datafecg,datafppg
+    def hampelFilter(self,data,win,t0,s):
+        Th = 1.4826
+        eMed = -0.105638066
+        pMed = 49.91691522
 
+        if s == "ecg" :
+            rMedian=np.median(data)
+            diff=np.abs(rMedian-eMed)
+            absMedianStd=scipy.signal.medfilt(diff,win)
+            th= t0*Th*absMedianStd
+            indOutlier=diff>th
+            data[indOutlier]=0
+        else:
+            rMedian=np.median(data)
+            diff=np.abs(data-rMedian)
+            absMedianStd=scipy.signal.medfilt(diff,win)
+            th= t0*Th*absMedianStd
+            indOutlier=diff>th
+            data[indOutlier]=0
+        
+        return(data)        
+    def waveletFilt( self,x, wavelet, level):
+        coeff = pywt.wavedec( x, wavelet, mode="per" )
+        sigma = robust.mad( coeff[-level] )
+        uthresh = sigma * np.sqrt( 2*np.log( len( x ) ) )
+        coeff[1:] = ( pywt.threshold( i, value=uthresh, mode="soft" ) for i in coeff[1:] )
+        y = pywt.waverec( coeff, wavelet, mode="per" )
+        return(y)
 
 if __name__ == "__main__":
     levels = []  # store levels of microphone
