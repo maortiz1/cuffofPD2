@@ -332,3 +332,5 @@ Cdia=lab_enc6.inverse_transform(Cdia)
 
 
 
+
+
