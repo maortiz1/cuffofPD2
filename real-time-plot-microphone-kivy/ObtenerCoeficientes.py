@@ -21,12 +21,9 @@ import scipy
 from sklearn import linear_model
 
 #ML
-import sklearn.svm 
-from sklearn import preprocessing
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import AdaBoostRegressor
 
-from sklearn.model_selection import train_test_split, cross_val_score, KFold
+from sklearn import preprocessing
+from sklearn.svm import SVC
 
 from sklearn.metrics import mean_squared_error
 from math import sqrt
@@ -168,6 +165,12 @@ for k in range(nombres.shape[0]):
     
     idx_ppgsis = (find_peaks(fppgcut,height=0)[0])
     idx_ppgdia= (find_peaks(-fppgcut,height=0)[0])
+#    plt.figure()
+#    plt.plot(t,fecgcut,c='y')    
+#    plt.plot(t,fppgcut,c='g')
+#    plt.scatter(t[idx_ppgsis],fppgcut[idx_ppgsis],c='r')
+#    plt.scatter(t[idx_ppgdia],fppgcut[idx_ppgdia],c='r')
+#    plt.scatter(t_RR,fecgcut[idx_peaksECG],c='b')
     
     pttsis=[]
     pttdia=[]
@@ -214,8 +217,8 @@ for k in range(nombres.shape[0]):
     sizevecdia=len(vec_dia)
     ma=np.min([sizeHR,sizepttsis,sizepttdia])
     HR_norm=HR_norm[0:ma]
-    pttsis=pttsis[0:ma]
-    pttdia=pttdia[0:ma]
+    pttsis=pttsis_norm[0:ma]
+    pttdia=pttdia_norm[0:ma]
     vec_dian1=vec_dia[0:ma]
     vec_sisn1=vec_sis[0:ma]
     vec_dia0=vec_dia[1:ma+1]
@@ -281,6 +284,17 @@ for b in coefdia:
     coefCdia.append(b[2])    
 
 
+file = open('SVMmod.txt','a+')
+for i in range(len(HRsvmsis)):
+     file.write('%f %f %f %f %f %f %f %f %f %f %f %f \n '%(HRsvmsis[i],BPsvmsis[i],pttsvmsis[i],HRsvmdia[i],pttsvmdia[i],BPsvmdia[i],coefAsis[i],coefBsis[i],coefCsis[i],coefAdia[i],coefBdia[i],coefCdia[i]))
+
+     
+     
+file.close()
+
+
+
+
 
 
 lab_enc1=preprocessing.LabelEncoder()
@@ -293,6 +307,10 @@ X=np.transpose(np.array([HRsvmsis,pttsvmsis,BPsvmsis]))
 coefAsis = lab_enc1.fit_transform(coefAsis)    
 coefBsis = lab_enc2.fit_transform(coefBsis) 
 coefCsis = lab_enc3.fit_transform(coefCsis)     
+
+
+
+
   
 regSBPA.fit(X[0:-1],coefAsis[0:-1])   
 regSBPB.fit(X[0:-1],coefBsis[0:-1])
@@ -326,6 +344,10 @@ Csis=lab_enc3.inverse_transform(Csis)
 Adia=lab_enc4.inverse_transform(Adia)
 Bdia=lab_enc5.inverse_transform(Bdia)
 Cdia=lab_enc6.inverse_transform(Cdia)
+
+
+
+
 
 
 
