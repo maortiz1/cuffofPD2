@@ -36,11 +36,19 @@ class Logic(BoxLayout):
     maxecg = NumericProperty()
     minppg = NumericProperty()
     maxppg = NumericProperty()
+    strDBP = StringProperty()
+    strSBP = StringProperty()
+    strHR  = StringProperty()
+    strPO  = StringProperty()
     def __init__(self,):
         super(Logic, self).__init__()
-        self.plot = MeshLinePlot(color=[0.09, 0.63, 0.8, 1])
+        self.plot  = MeshLinePlot(color=[0.09, 0.63, 0.8, 1])
         self.plot2 = MeshLinePlot(color=[0.09, 0.63, 0.8, 1])
         self.random_number = str('')
+        self.strDBP = str('')
+        self.strSBP = str('')
+        self.strHR  = str('')
+        self.strPO  = str('')
         self.minecg=0
         self.maxecg=1000
         self.minppg=0
@@ -61,16 +69,23 @@ class Logic(BoxLayout):
 #            App.get_running_app().stop()
 #            sys.exit()
 
-    def change_text(self):
+    def change_text(self, dt):
         self.random_number = str(random.randint(1, 100))
+        self.strDBP = str(75  + random.randint(1, 10))
+        self.strSBP = str(110 + random.randint(1, 10))
+        self.strHR  = str(70  + random.randint(1, 15))
+        self.strPO  = str(90  + random.randint(1, 10))
+
+        #Cuando funcionen los calculos toca cambiar lo de random....
+
     def start(self):
 
         self.ids.ppg_graph.add_plot(self.plot2)
         self.ids.ecg_graph.add_plot(self.plot)
         self.bcbB.startstreaming()
-        
+
         Clock.schedule_interval(self.get_value, 1/250)
-        Clock.schedule_interval(self.change_DBP, 0.5)
+        Clock.schedule_interval(self.change_text, 30)
 
     def stop(self):
 
@@ -90,12 +105,12 @@ class Logic(BoxLayout):
 #        Clock.unschedule(partial(self.putdataontxt, self.file))
         ecg=self.bcbB.retecgT()
         ppg= self.bcbB.retppgT()
-        
+
         for s in ecg:
             self.file.write(str(s) + ',')
         for d in ppg:
             self.file1.write(str(d) + ',')
-             
+
         self.bcbB.flush()
         self.file.close()
         self.file1.close()
@@ -172,7 +187,7 @@ class bciBoardConnect():
         #print(sample.channel_data)
         self.ecg = (sample.channel_data[3])
         self.ppg = (sample.channel_data[5])
-        
+
         if len(self.graphppg)<1250:
             self.graphecg.append(sample.channel_data[3])
             self.graphppg.append(sample.channel_data[5])
@@ -264,8 +279,8 @@ class filter():
             th= t0*Th*absMedianStd
             indOutlier=diff>th
             data[indOutlier]=0
-        
-        return(data)        
+
+        return(data)
     def waveletFilt( self,x, wavelet, level):
         coeff = pywt.wavedec( x, wavelet, mode="per" )
         sigma = robust.mad( coeff[-level] )
