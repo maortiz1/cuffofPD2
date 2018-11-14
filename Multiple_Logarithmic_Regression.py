@@ -47,7 +47,7 @@ estimatedDBP = []
 
 ##########################################################################
 
-for i in range(n):
+for i in range(3):
     
     HR_norm     = scale(HRtrain[i])
     logPPT_norm = scale(np.log(PPTtrain[i]))
@@ -85,6 +85,32 @@ for i in range(n):
     
     errorSBP[i] = ( 1/(len(y1)) * sum((regSBP.predict(X)-y1)**2) )**0.5
     errorDBP[i] = ( 1/(len(y2)) * sum((regDBP.predict(X)-y2)**2) )**0.5
+    
+    sns.set_style("whitegrid")
+    sns.jointplot(X[:,1], y2, kind ='kde')
+    plt.xlabel('log(PPT)') # Set text for the x axis
+    plt.ylabel('Diastolic Blood Pressure')# Set text for y axi
+    plt.show()
+    
+    sns.set_style("whitegrid")
+    sns.jointplot(X[:,1], y1, kind ='kde')
+    plt.xlabel('log(PPT)') # Set text for the x axis
+    plt.ylabel('Systolic Blood Pressure')# Set text for y axi
+    plt.show()
+    
+    sns.set_style("whitegrid")
+    sns.jointplot(np.array(HRtrain[i])[idx], y2, kind ='kde')
+    plt.xlabel('Heart rate') # Set text for the x axis
+    plt.ylabel('Diastolic Blood Pressure')# Set text for y axi
+    plt.show()
+    
+    sns.set_style("whitegrid")
+    sns.jointplot(np.array(HRtrain[i])[idx], y1, kind ='kde')
+    plt.xlabel('Heart rate') # Set text for the x axis
+    plt.ylabel('Systolic Blood Pressure')# Set text for y axi
+    plt.show()
+ 
+plt.show()
        
 ############################################################################ 
     

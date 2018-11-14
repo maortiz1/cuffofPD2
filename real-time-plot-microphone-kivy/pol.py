@@ -178,14 +178,14 @@ for k in range(nombres.shape[0]):
             t_RR2 =  np.delete(t_RR, np.array(idx_del))
             t_PPG = t[idx_peaksPPG]
 
-#            plt.figure()
-#            plt.subplot(211)
-#            plt.plot(t,ECG_aux)
-#            plt.scatter(t_RR,ECG_aux[idx_peaksECG], c='r')
-#            plt.title(nombres[k])
-#            plt.subplot(212)
-#            plt.plot(t,PPG_aux,'g')
-#            plt.scatter(t_PPG,PPG_aux[idx_peaksPPG], c='y')
+            plt.figure()
+            plt.subplot(211)
+            plt.plot(t,ECG_aux)
+            plt.scatter(t_RR,ECG_aux[idx_peaksECG], c='r')
+            plt.title(nombres[k])
+            plt.subplot(212)
+            plt.plot(t,PPG_aux,'g')
+            plt.scatter(t_PPG,PPG_aux[idx_peaksPPG], c='y')
 
             PPT1 = (t_PPG-t_RR2[:-1])
             PPT2 = (t_RR1[1: ]-t_PPG)
