@@ -91,6 +91,18 @@ fil=filter()
 ##crear datos presion 
 nombres = datos_t[::9,0]
 i=1
+f=[0]
+coefsis=[]
+coefdia=[]
+coefsis2=[]
+coefdia2=[]
+pttsvmdia=[]
+ppgsvmdia=[]
+HRsvmdia=[]
+pttsvmsis=[]
+ppgsvmsis=[]
+HRsvmsis=[]
+#for k in f:
 for k in range(nombres.shape[0]):
     actual=k*9;
     dat = np.delete(datos_n[actual:i*9],(0),axis=0)
@@ -136,14 +148,117 @@ for k in range(nombres.shape[0]):
     first=lastvalue-int(idx[-1])
     PPGcut=PPG[first:lastvalue]
     fecgcut,fppgcut=fil.filtrar(ECGcut,PPGcut)
+#    if len(fecgcut)>len(ECGcut):
+#        fecgcut=fecgcut[0:len(ECGcut)-1]
+#    if len(fppgcut)>len(PPGcut):
+#        fppgcut=fecgcut[0:len(PPGcut)-1]  
+    if len(fecgcut)>len(fppgcut):
+        fecgcut=fecgcut[0:len(fppgcut)]
+    else:
+        fppgcut=fppgcut[0:len(fecgcut)]
     #obtener picos RR
-    idx_peaksECG = nk.bio_process(ecg = ECGcut, sampling_rate=250)['ECG']['R_Peaks']
+    t= np.arange(len(fecgcut))/250
+    idx_peaksECG = nk.bio_process(ecg = fecgcut, sampling_rate=250)['ECG']['R_Peaks']
+    t_RR = t[idx_peaksECG]
+    diff=np.diff(t_RR)
+    HR=60/diff
+    
+    idx_ppgsis = (find_peaks(fppgcut,height=0)[0])
+    idx_ppgdia= (find_peaks(-fppgcut,height=0)[0])
+    
+    pttsis=[]
+    pttdia=[]
+    ind_ppgsis=[]
+    ind_ppgdia=[]
+    vec_sis=[]
+    vec_dia=[]
+    vec_sis.append(newsis[0])
+    vec_dia.append(newdia[0])
+    for ind in range(len(idx_peaksECG)-1):
+        ini=idx_peaksECG[ind]
+        fin=idx_peaksECG[ind+1]
+        
+        ##ppg corte
+        idx_ppgsis = (find_peaks(fppgcut[ini:fin],height=0,distance=fin-ini)[0]+ini)
+        idx_ppgdia= (find_peaks(-fppgcut[ini:fin],height=0,distance=fin-ini)[0]+ini)
+        ind_ppgsis.append(idx_ppgsis[0:-1])
+        ind_ppgdia.append(idx_ppgdia[0:-1])
+        if idx_ppgsis.size>0:
+            ppgcutpeaksis=fppgcut[idx_ppgsis]
+            ma=np.argmax(ppgcutpeaksis)           
+            ptt=np.abs(t[idx_ppgsis[ma]]-t[ini])
+            pttsis.append(np.absolute(ptt))
+            vec_sis.append(newsis[idx_ppgsis[ma]])
+            
+        if idx_ppgdia.size>0:
+            ppgcutpeakdia=fppgcut[idx_ppgdia]
+            mi=np.argmin(ppgcutpeakdia)           
+            ptt=np.abs(t[ini]-t[idx_ppgdia[mi]])
+            pttdia.append(np.absolute(ptt))
+            vec_dia.append(newdia[idx_ppgdia[mi]])
+    #regresion
+    #sistole
+    #quitar un valor
+    
+    HR_norm=scale(HR)
+    pttsis_norm=scale(np.log(pttsis))  
+    pttdia_norm=scale(np.log(pttdia))
+    
+    sizeHR=len(HR_norm)
+    sizepttsis=len(pttsis_norm)
+    sizepttdia=len(pttdia_norm)
+    sizevecsis=len(vec_sis)
+    sizevecdia=len(vec_dia)
+    ma=np.min([sizeHR,sizepttsis,sizepttdia])
+    HR_norm=HR_norm[0:ma]
+    pttsis=pttsis[0:ma]
+    pttdia=pttdia[0:ma]
+    vec_dian1=vec_dia[0:ma]
+    vec_sisn1=vec_sis[0:ma]
+    vec_dia0=vec_dia[1:ma+1]
+    vec_sis0=vec_sis[1:ma+1]
+    
+    regSIS=linear_model.LinearRegression();
+    xsis=np.transpose(np.array([HR_norm,pttsis,vec_sisn1]))
+    regSIS.fit(xsis,vec_sis0)
+    
+    coefsis.append(regSIS.coef_)
+    
+    regDIA=linear_model.LinearRegression();
+    xdia=np.transpose(np.array([HR_norm,pttdia,vec_dian1]))
+    regDIA.fit(xsis,vec_dia0)
+    
+    coefdia.append(regSIS.coef_)
+    regSIS2=linear_model.LinearRegression();
+    xsis=np.transpose(np.array([HR_norm,pttsis]))
+    regSIS2.fit(xsis,vec_sis0)
+    
+    coefsis2.append(regSIS.coef_)
+    
+    regDIA=linear_model.LinearRegression();
+    xdia=np.transpose(np.array([HR_norm,pttdia]))
+    regDIA.fit(xsis,vec_dia0)
+    
+    coefdia2.append(regSIS.coef_)
     
     
     
+    pttsvmdia.append(np.mean(pttdia))
+ 
+    HRsvmdia.append(np.mean(HR_norm))
+    pttsvmsis.append(np.mean(pttsis))
+    HRsvmsis.append(np.mean(HR_norm))
     
     
-    
+regSBP = SVR(kernel='linear', C=3,class_weight='balanced')
+regDBP = SVR(kernel='linear', C=3,class_weight='balanced')   
+
+
+X=np.transpose(np.array([HRsvmsis,pttsvmsis]))    
+regSBP.fit(X,coefsis)   
+X2=np.transpose(np.array([HRsvmsis,pttsvmsis]))    
+regSBP.fit(X2,coefdia)   
+        
     
     
     
