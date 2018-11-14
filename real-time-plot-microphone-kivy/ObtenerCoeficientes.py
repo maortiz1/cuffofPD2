@@ -21,7 +21,8 @@ import scipy
 from sklearn import linear_model
 
 #ML
-from sklearn.svm import SVR
+import sklearn.svm 
+from sklearn import preprocessing
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor
 
@@ -102,6 +103,8 @@ HRsvmdia=[]
 pttsvmsis=[]
 ppgsvmsis=[]
 HRsvmsis=[]
+BPsvmsis=[]
+BPsvmdia=[]
 #for k in f:
 for k in range(nombres.shape[0]):
     actual=k*9;
@@ -248,33 +251,81 @@ for k in range(nombres.shape[0]):
     HRsvmdia.append(np.mean(HR_norm))
     pttsvmsis.append(np.mean(pttsis))
     HRsvmsis.append(np.mean(HR_norm))
+    BPsvmdia.append(vec_dia0[0])
+    BPsvmsis.append(vec_sis0[0])
     
+regSBPA = SVC(kernel='linear', C=300)
     
-regSBP = SVR(kernel='linear', C=3,class_weight='balanced')
-regDBP = SVR(kernel='linear', C=3,class_weight='balanced')   
-
-
-X=np.transpose(np.array([HRsvmsis,pttsvmsis]))    
-regSBP.fit(X,coefsis)   
-X2=np.transpose(np.array([HRsvmsis,pttsvmsis]))    
-regSBP.fit(X2,coefdia)   
-        
+regSBPB = SVC(kernel='linear', C=300)
     
-    
-    
-        
-        
-    
-    
-    
-    
-        
-    
+regSBPC = SVC(kernel='linear', C=300)
+regDBPA = SVC(kernel='linear', C=300)   
+regDBPB = SVC(kernel='linear', C=300)   
+regDBPC = SVC(kernel='linear', C=300)   
 
 
 
+coefAsis=[]
+coefBsis=[]
+coefCsis=[]
+coefAdia=[]
+coefBdia=[]
+coefCdia=[]
+for a in coefsis:
+    coefAsis.append(a[0])
+    coefBsis.append(a[1])
+    coefCsis.append(a[2])
+for b in coefdia:
+    coefAdia.append(b[0])
+    coefBdia.append(b[1])
+    coefCdia.append(b[2])    
 
 
+
+
+lab_enc1=preprocessing.LabelEncoder()
+lab_enc2=preprocessing.LabelEncoder()
+lab_enc3=preprocessing.LabelEncoder()
+lab_enc4=preprocessing.LabelEncoder()
+lab_enc6=preprocessing.LabelEncoder()
+lab_enc5=preprocessing.LabelEncoder()
+X=np.transpose(np.array([HRsvmsis,pttsvmsis,BPsvmsis]))    
+coefAsis = lab_enc1.fit_transform(coefAsis)    
+coefBsis = lab_enc2.fit_transform(coefBsis) 
+coefCsis = lab_enc3.fit_transform(coefCsis)     
+  
+regSBPA.fit(X[0:-1],coefAsis[0:-1])   
+regSBPB.fit(X[0:-1],coefBsis[0:-1])
+regSBPC.fit(X[0:-1],coefCsis[0:-1])      
+
+coefAdia = lab_enc4.fit_transform(coefAdia)    
+coefBdia = lab_enc5.fit_transform(coefBdia) 
+coefCdia = lab_enc6.fit_transform(coefCdia)
+
+X2=np.transpose(np.array([HRsvmdia,pttsvmdia,BPsvmdia]))    
+regDBPA.fit(X2[0:-1],coefAdia[0:-1])   
+regDBPB.fit(X2[0:-1],coefBdia[0:-1])           
+regDBPC.fit(X2[0:-1],coefCdia[0:-1])       
+
+Asis=regSBPA.predict([X[-1]])  
+
+Bsis=regSBPB.predict([X[-1]])  
+       
+
+Csis=regSBPC.predict([X[-1]])  
+   
+
+Cdia=regDBPC.predict([X2[-1]])     
+Bdia=regDBPB.predict([X2[-1]])       
+Adia=regDBPA.predict([X2[-1]])           
+    
+Asis=lab_enc1.inverse_transform(Asis)
+Bsis=lab_enc2.inverse_transform(Bsis)
+Csis=lab_enc3.inverse_transform(Csis)
+
+Adia=lab_enc4.inverse_transform(Adia)
+Bdia=lab_enc5.inverse_transform(Bdia)
+Cdia=lab_enc6.inverse_transform(Cdia)
 
 
 
