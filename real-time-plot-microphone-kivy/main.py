@@ -19,7 +19,6 @@ import time
 import datetime
 import numpy as np
 from statsmodels import robust
-import matplotlib.pylab as plt
 import scipy
 from scipy.signal import filtfilt
 import pywt
@@ -58,7 +57,7 @@ class Logic(BoxLayout):
         super(Logic, self).__init__()
         self.plot  = MeshLinePlot(color=[0.09, 0.63, 0.8, 1])
         self.plot2 = MeshLinePlot(color=[0.09, 0.63, 0.8, 1])
-        
+
         self.random_number = str('')
         self.strDBP = str('')
         self.strSBP = str('')
@@ -105,8 +104,8 @@ class Logic(BoxLayout):
         Clock.schedule_interval(self.calculartod, 10)
         Clock.schedule_interval(self.change_DBP, 2/250)
         Clock.schedule_interval(self.change_text, 20)
-        
-        
+
+
 
     def stop(self):
 
@@ -158,32 +157,32 @@ class Logic(BoxLayout):
 
 
     def change_DBP(self, dt):
-  
+
         self.strDBP = str(int(self.DiaA[-1]))
         self.strSBP = str(int(self.SisA[-1]))
         if len(self.HR) is not 0:
             self.strHR  = str(int(self.HR[-1]))
         else:
             self.strHR  = str('')
-         
-        
+
+
     def calculartod(self,dt):
         self.ecg30,self.ppg30=self.bcbB.ret30()
         if len(self.ecg30)>7000:
-            fecgcut,fppgcut=self.fil.filtrar(self.ecg30,self.ppg30) 
+            fecgcut,fppgcut=self.fil.filtrar(self.ecg30,self.ppg30)
             if len(fecgcut)>len(fppgcut):
                 fecgcut=fecgcut[0:len(fppgcut)]
             else:
                 fppgcut=fppgcut[0:len(fecgcut)]
-                
+
             t= np.arange(len(fecgcut))/250
             idx_peaksECG = nk.bio_process(ecg = fecgcut, sampling_rate=250)['ECG']['R_Peaks']
             t_RR = t[idx_peaksECG]
             diff=np.diff(t_RR)
             HRs=60/diff;
-            
+
             HRs[np.isnan(HRs)]=60
-            
+
             print(HRs)
             self.HR.append(np.mean(HRs))
             pttsis=[]
@@ -193,7 +192,7 @@ class Logic(BoxLayout):
             for ind in range(len(idx_peaksECG)-1):
                 ini=idx_peaksECG[ind]
                 fin=idx_peaksECG[ind+1]
-        
+
         ##ppg corte
                 idx_ppgsis = (find_peaks(fppgcut[ini:fin],height=0,distance=fin-ini)[0]+ini)
                 idx_ppgdia= (find_peaks(-fppgcut[ini:fin],height=0,distance=fin-ini)[0]+ini)
@@ -201,29 +200,29 @@ class Logic(BoxLayout):
                 ind_ppgdia.append(idx_ppgdia[0:-1])
                 if idx_ppgsis.size>0:
                     ppgcutpeaksis=fppgcut[idx_ppgsis]
-                    ma=np.argmax(ppgcutpeaksis)           
+                    ma=np.argmax(ppgcutpeaksis)
                     ptt=np.abs(t[idx_ppgsis[ma]]-t[ini])
                     pttsis.append(np.absolute(ptt))
-                
-            
+
+
                 if idx_ppgdia.size>0:
                     ppgcutpeakdia=fppgcut[idx_ppgdia]
-                    mi=np.argmin(ppgcutpeakdia)           
+                    mi=np.argmin(ppgcutpeakdia)
                     ptt=np.abs(t[ini]-t[idx_ppgdia[mi]])
                     pttdia.append(np.absolute(ptt))
-                
+
             HR_norm=scale(HRs)
-            pttsis_norm=scale(np.log(pttsis))  
+            pttsis_norm=scale(np.log(pttsis))
             pttdia_norm=scale(np.log(pttdia))
-            
+
             sizeHR=len(HR_norm)
             sizepttsis=len(pttsis_norm)
             sizepttdia=len(pttdia_norm)
-            
+
             ma=np.min([sizeHR,sizepttsis,sizepttdia])
             HR_norm=HR_norm[0:ma]
             pttsis=pttsis_norm[0:ma]
-            pttdia=pttdia_norm[0:ma] 
+            pttdia=pttdia_norm[0:ma]
             self.meanpttsis=np.mean(pttsis)
             self.meanpttdia=np.mean(pttdia)
             self.HRnormena=np.mean(HR_norm)
@@ -237,15 +236,15 @@ class Logic(BoxLayout):
                 self.SisA.append(int(sisHoy))
             print(diaHoy)
             print(sisHoy)
-         
-            
+
+
 
 class RealTimeMicrophone(App):
     def build(self):
         return Builder.load_file("look.kv")
 class bciBoardConnect():
     def __init__(self):
-        self.board=bci.OpenBCIBoard(port='COM3')
+        self.board=bci.OpenBCIBoard(port = "/dev/ttyS0")
         self.eeg_channels = self.board.getNbEEGChannels()
         self.aux_channels = self.board.getNbAUXChannels()
         self.sample_rate = self.board.getSampleRate()
@@ -357,7 +356,7 @@ class bciBoardConnect():
             self.save=True
         else:
             self.save=False
-            
+
     def ret30(self):
         return self.ecg30,self.ppg30
 class filter():
@@ -400,9 +399,10 @@ class filter():
         coeff[1:] = ( pywt.threshold( i, value=uthresh, mode="soft" ) for i in coeff[1:] )
         y = pywt.waverec( coeff, wavelet, mode="per" )
         return(y)
+
 class estimatePressure():
     def __init__(self):
-        self.datos=np.genfromtxt('SVMmod.txt')
+        self.datos = np.genfromtxt('SVMmod.txt')
         self.HRsvmsis=self.datos[::,0]
         self.BPsvmsis=self.datos[::,1]
         self.pttsvmsis=self.datos[::,2]
@@ -415,52 +415,52 @@ class estimatePressure():
         self.coefAdia=self.datos[::,9]
         self.coefBdia=self.datos[::,10]
         self.coefCdia=self.datos[::,11]
-        
-        
+
+
         self.lab_enc1=preprocessing.LabelEncoder()
         self.lab_enc2=preprocessing.LabelEncoder()
         self.lab_enc3=preprocessing.LabelEncoder()
         self.lab_enc4=preprocessing.LabelEncoder()
         self.lab_enc6=preprocessing.LabelEncoder()
         self.lab_enc5=preprocessing.LabelEncoder()
-        self.X=np.transpose(np.array([self.HRsvmsis,self.pttsvmsis,self.BPsvmsis]))    
-        self.coefAsis = self.lab_enc1.fit_transform(self.coefAsis)    
-        self.coefBsis = self.lab_enc2.fit_transform(self.coefBsis) 
-        self.coefCsis = self.lab_enc3.fit_transform(self.coefCsis)     
+        self.X=np.transpose(np.array([self.HRsvmsis,self.pttsvmsis,self.BPsvmsis]))
+        self.coefAsis = self.lab_enc1.fit_transform(self.coefAsis)
+        self.coefBsis = self.lab_enc2.fit_transform(self.coefBsis)
+        self.coefCsis = self.lab_enc3.fit_transform(self.coefCsis)
 
         self.regSBPA = SVC(kernel='linear', C=300)
-            
+
         self.regSBPB = SVC(kernel='linear', C=300)
-            
+
         self.regSBPC = SVC(kernel='linear', C=300)
-        self.regDBPA = SVC(kernel='linear', C=300)   
-        self.regDBPB = SVC(kernel='linear', C=300)   
-        self.regDBPC = SVC(kernel='linear', C=300)   
+        self.regDBPA = SVC(kernel='linear', C=300)
+        self.regDBPB = SVC(kernel='linear', C=300)
+        self.regDBPC = SVC(kernel='linear', C=300)
 
 
 
-        self.regSBPA.fit(self.X,self.coefAsis)   
+        self.regSBPA.fit(self.X,self.coefAsis)
         self.regSBPB.fit(self.X,self.coefBsis)
-        self.regSBPC.fit(self.X,self.coefCsis)      
+        self.regSBPC.fit(self.X,self.coefCsis)
 
-        self.coefAdia = self.lab_enc4.fit_transform(self.coefAdia)    
-        self.coefBdia = self.lab_enc5.fit_transform(self.coefBdia) 
+        self.coefAdia = self.lab_enc4.fit_transform(self.coefAdia)
+        self.coefBdia = self.lab_enc5.fit_transform(self.coefBdia)
         self.coefCdia = self.lab_enc6.fit_transform(self.coefCdia)
 
-        self.X2=np.transpose(np.array([self.HRsvmdia,self.pttsvmdia,self.BPsvmdia]))    
-        self.regDBPA.fit(  self.X2,  self.coefAdia)   
-        self.regDBPB.fit(  self.X2,  self.coefBdia)           
-        self.regDBPC.fit(  self.X2,  self.coefCdia)    
-        
+        self.X2=np.transpose(np.array([self.HRsvmdia,self.pttsvmdia,self.BPsvmdia]))
+        self.regDBPA.fit(  self.X2,  self.coefAdia)
+        self.regDBPB.fit(  self.X2,  self.coefBdia)
+        self.regDBPC.fit(  self.X2,  self.coefCdia)
+
     def predecir(self,HR,pptsis,pptdia,bpasis,bpadias):
         self.X=[HR,pptsis,bpasis]
         self.X2=[HR,pptdia,bpadias]
-        self.Asis=self.regSBPA.predict([self.X])  
-        self.Bsis=self.regSBPB.predict([self.X])        
+        self.Asis=self.regSBPA.predict([self.X])
+        self.Bsis=self.regSBPB.predict([self.X])
         self.Csis=self.regSBPC.predict([self.X])
-        self.Cdia=self.regDBPC.predict([self.X2])     
-        self.Bdia=self.regDBPB.predict([self.X2])       
-        self.Adia=self.regDBPA.predict([self.X2])  
+        self.Cdia=self.regDBPC.predict([self.X2])
+        self.Bdia=self.regDBPB.predict([self.X2])
+        self.Adia=self.regDBPA.predict([self.X2])
         ##decode
         self.Asis=self.lab_enc1.inverse_transform(self.Asis)
         self.Bsis=self.lab_enc2.inverse_transform(self.Bsis)
@@ -469,7 +469,7 @@ class estimatePressure():
         self.Bdia=self.lab_enc5.inverse_transform(self.Bdia)
         self.Cdia=self.lab_enc6.inverse_transform(self.Cdia)
         return self.Asis,self.Bsis,self.Csis,self.Adia,self.Bdia,self.Cdia
-    
+
 if __name__ == "__main__":
     levels = []  # store levels of microphone
 #    get_level_thread = Thread(target = get_microphone_level)
